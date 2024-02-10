@@ -5,11 +5,10 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
-#include "Components/ArrowComponent.h"
+#include "NiagaraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "MDVProject2/Objects/Weapons/Weapon.h"
 #include "MDVProject2/Utils/DataStructures.h"
 #include "MDVProject2/Utils/InteractiveObject.h"
 
@@ -40,7 +39,14 @@ void ANagy::InitComponents() {
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	GetArrowComponent()->bHiddenInGame = false;
+	// Add dash Niagara effect
+	DashChildBP = CreateDefaultSubobject<UChildActorComponent>("DashBP");
+	DashChildBP->SetChildActorClass(AActor::StaticClass());
+	DashChildBP->SetupAttachment(GetMesh());
+
+	// Add sprinting Niagara effect
+	TrailNiagaraEffect = CreateDefaultSubobject<UNiagaraComponent>("TrailNiagaraEffect");
+	TrailNiagaraEffect->SetupAttachment(GetMesh());
 }
 
 // Called when the game starts or when spawned
@@ -60,9 +66,12 @@ void ANagy::BeginPlay() {
 	}
 
 	MyReferenceManager = Cast<AMyReferenceManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyReferenceManager::StaticClass()));
+	MovementSettingsArray = MovementSettings->GetRowNames();
 	AnimInstance = GetMesh()->GetAnimInstance();
+	TrailNiagaraEffect->Deactivate();
 	CharMovementFirstChange = false;
 	CurrentMovementType = Walking;
+	EquippedWeapon = StowedWeapon = Unarmed;
 }
 
 // Called every frame
@@ -102,6 +111,7 @@ void ANagy::Move(const FInputActionValue& Value) {
 		AddMovementInput(Forward, DirectionValue.X);
 		AddMovementInput(Sideways, DirectionValue.Y);
 		if (DirectionValue.X < 0 && CurrentMovementType == Sprinting) {
+			TrailNiagaraEffect->Deactivate();
 			ModifyCharacterMovement(Walking);
 		}
 	}
@@ -131,59 +141,77 @@ void ANagy::Block(const FInputActionValue& Value) {
 }
 
 void ANagy::Dash(const FInputActionValue& Value) {
-	if (GetCharacterMovement()->MaxWalkSpeed >= 750) {
+	// TODO: Deactivate all inputs other than camera and WASD (to avoid interacting mid dash for example). Prerequisite: learn how to add input modifiers for the WASD input
+	if (GetCharacterMovement()->MaxWalkSpeed >= MovementSettings->FindRow<FMovementSetting>(MovementSettingsArray[Sprinting], "", true)->MaxWalkSpeed) {
+		TriggerNiagaraEffect();
 		ModifyCharacterMovement(Dashing);
 		GetMesh()->AnimScriptInstance->GetOwningComponent()->GlobalAnimRateScale = 0.0f;
-		FTimerHandle MemberTimerHandle;
-		GetWorldTimerManager().SetTimer(MemberTimerHandle, this, &ANagy::DashTimerDelegate, 1.0f, false, .07f);
+
+		FTimerHandle TimerHandle;
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ANagy::DashTimerDelegate, 1.0f, false, .04f);
 	}
 }
 
 void ANagy::Interact(const FInputActionValue& Value) {
 	const bool InteractPressed = Value.Get<bool>();
-
-	TArray<AActor*> OverlappingActors;
-	GetOverlappingActors(OverlappingActors, UInteractiveInterface::StaticClass());
-
-	if (!OverlappingActors.IsEmpty() && InteractPressed) {
-		UE_LOG(LogTemp, Warning, TEXT("Overlap"))
-		// Create and change to a new Input Mapping Context
-		InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->LookInputAction, Subsystem->QueryKeysMappedToAction(InputDataAsset->LookInputAction)[0]);
-		InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->CameraZoomInputAction, Subsystem->QueryKeysMappedToAction(InputDataAsset->CameraZoomInputAction)[0]);
-
-		//TODO: Figure how to create and add input modifiers (to negate and swizzle WASD movement) 
-		/*
-		TArray<UInputAction*> InputActionArray;
-		/*InputActionArray.Add(InputDataAsset->LookInputAction);
-		InputActionArray.Add(InputDataAsset->CameraZoomInputAction);#1#
-
-		InputActionArray.Add(InputDataAsset->MoveInputAction);
-		
-		AddMappings(InputActionArray);
-		
-		InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::W);
-		InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::S);
-		InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::A);
-		InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::D);
-
-		UInputModifier Modifier;
-		Modifier.ModifyRaw(Subsystem->GetPlayerInput(), );
-		
-		TArray<TObjectPtr<UInputModifier>> Modifiers;
-		Modifiers.Add(Modifier);
-		InputDataAsset->MoveInputAction->Modifiers = Modifiers;*/
-		
-		if (Subsystem) {
-			Subsystem->RemoveMappingContext(InputDataAsset->MappingContext);
+	UE_LOG(LogTemp, Warning, TEXT("EquipedWeapon: %d"), EquippedWeapon.GetIntValue());
+	if (StowedWeapon == Unarmed && EquippedWeapon != Unarmed) {
+		switch (EquippedWeapon) {
+			case Sword:
+				AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
+				break;
+			case Spear:
+				AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
+				break;
+			default: ;
 		}
+	} else if (EquippedWeapon == Unarmed && StowedWeapon == Unarmed) {
+		TArray<AActor*> OverlappingActors;
+		GetOverlappingActors(OverlappingActors, UInteractiveInterface::StaticClass());
 
-		//InputDataAsset->MappingContext->GetMappings()[0].Action
+		if (!OverlappingActors.IsEmpty()) {
+			if (CurrentMovementType == Sprinting || CurrentMovementType == Dashing) {
+				TrailNiagaraEffect->Deactivate();
+				ModifyCharacterMovement(Walking);
+			}
+			// Create and change to a new Input Mapping Context
+			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->LookInputAction, Subsystem->QueryKeysMappedToAction(InputDataAsset->LookInputAction)[0]);
+			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->CameraZoomInputAction, Subsystem->QueryKeysMappedToAction(InputDataAsset->CameraZoomInputAction)[0]);
 
-		UE_LOG(LogTemp, Warning, TEXT("time played: %f"), AnimInstance->Montage_Play(AnimationDataAsset->InteractMontage, 1))
+			//TODO: Figure how to create and add input modifiers (to negate and swizzle WASD movement) 
+			/*
+			TArray<UInputAction*> InputActionArray;
+			/*InputActionArray.Add(InputDataAsset->LookInputAction);
+			InputActionArray.Add(InputDataAsset->CameraZoomInputAction);#1#
 
-		// Create delegate to notify end of montage
-		CompleteDelegate.BindUObject(this, &ANagy::MontageEndDelegate);
-		GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(CompleteDelegate, AnimationDataAsset->InteractMontage);
+			InputActionArray.Add(InputDataAsset->MoveInputAction);
+			
+			AddMappings(InputActionArray);
+			
+			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::W);
+			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::S);
+			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::A);
+			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::D);
+
+			UInputModifier Modifier;
+			Modifier.ModifyRaw(Subsystem->GetPlayerInput(), );
+			
+			TArray<TObjectPtr<UInputModifier>> Modifiers;
+			Modifiers.Add(Modifier);
+			InputDataAsset->MoveInputAction->Modifiers = Modifiers;*/
+			
+			if (Subsystem) {
+				Subsystem->RemoveMappingContext(InputDataAsset->MappingContext);
+			}
+
+			//InputDataAsset->MappingContext->GetMappings()[0].Action
+
+			UE_LOG(LogTemp, Warning, TEXT("time played: %f"), AnimInstance->Montage_Play(AnimationDataAsset->InteractMontage, 1))
+
+			// Create delegate to notify end of montage
+			CompleteDelegate.BindUObject(this, &ANagy::InteractMontageEndDelegate);
+			GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(CompleteDelegate, AnimationDataAsset->InteractMontage);
+		}
 	}
 }
 
@@ -193,7 +221,7 @@ void ANagy::CameraZoom(const FInputActionValue& Value) {
     	if (DirectionValue.X != 0) {
     		const float NewTargetArmLength = CameraBoom->TargetArmLength + (-DirectionValue.X * CameraZoomDataAsset->ZoomStep);
     		const FVector TransformedVector = FVector(0, 0, DirectionValue.X);
-		    static const FVector MaxCameraHeight = FVector(0, 0, CameraZoomDataAsset->MaxCameraZoom/2);
+		    static const FVector MaxCameraHeight = FVector(0, 0, CameraZoomDataAsset->MaxCameraZoom / 2);
     		static const FVector MinCameraHeight = FVector(0, 0, CameraZoomDataAsset->MinCameraZoom);
     		CameraBoom->SetRelativeLocation(ClampVector(CameraBoom->GetRelativeLocation() + (-TransformedVector * CameraZoomDataAsset->ZoomStep / 2), MinCameraHeight, MaxCameraHeight));
     		CameraBoom->TargetArmLength = FMath::Clamp(NewTargetArmLength, CameraZoomDataAsset->MinCameraZoom, CameraZoomDataAsset->MaxCameraZoom);
@@ -203,11 +231,13 @@ void ANagy::CameraZoom(const FInputActionValue& Value) {
 
 void ANagy::Sprint(const FInputActionValue& Value) {
 	if (Value.Get<bool>() && !CharMovementFirstChange) {
+		TrailNiagaraEffect->Activate();
 		ModifyCharacterMovement(Sprinting);
 		CharMovementFirstChange = true;
 		CurrentMovementType = Sprinting;
 	} 
 	if (!Value.Get<bool>()) {
+		TrailNiagaraEffect->Deactivate();
 		ModifyCharacterMovement(Walking);
 		CharMovementFirstChange = false;
 		CurrentMovementType = Walking;
@@ -218,25 +248,23 @@ void ANagy::Test(const FInputActionValue& Value) {
 	UE_LOG(LogTemp, Warning, TEXT("Test key pressed"))
 }
 
+
 /* Delegates */
 
 void ANagy::DashTimerDelegate() {
-	InputDataAsset->BlankMappingContext->UnmapAll();
-	// Return to default Input Mapping Context
-	if (Subsystem) {
-		Subsystem->AddMappingContext(InputDataAsset->MappingContext, 1);
-	}
 	// Set the current movement type
 	ModifyCharacterMovement(CurrentMovementType);
 	GetMesh()->AnimScriptInstance->GetOwningComponent()->GlobalAnimRateScale = 1.0f;
 }
 
-void ANagy::MontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted) {
-	UE_LOG(LogTemp, Warning, TEXT("Montage completed!"))
+void ANagy::InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted) {
 	if (AnimMontage == AnimationDataAsset->InteractMontage) {
 		TArray<AActor*> OverlappingActors;
 		GetOverlappingActors(OverlappingActors, UInteractiveInterface::StaticClass());
-		EquippedWeapon = Cast<AWeapon>(OverlappingActors[0]);
+		if (!OverlappingActors.IsEmpty()) {
+			EquippedWeapon = Cast<IInteractiveInterface>(OverlappingActors[0])->GetWeaponType();
+			UE_LOG(LogTemp, Warning, TEXT("EEquippedWeapon: %d"), EquippedWeapon.GetIntValue());
+		}
 	}
 
 	InputDataAsset->BlankMappingContext->UnmapAll();
@@ -246,27 +274,26 @@ void ANagy::MontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted) {
 	}
 }
 
+
 /* Movement handling */
 
 void ANagy::ModifyCharacterMovement(const EMovementType MovementType) const {
+	const FMovementSetting* MovementSetting = MovementSettings->FindRow<FMovementSetting>(MovementSettingsArray[MovementType], "", true);
 	switch (MovementType) {
 		case Walking:
-			UE_LOG(LogTemp, Warning, TEXT("Walking"))
-			GetCharacterMovement()->MaxWalkSpeed = 250;
-			GetCharacterMovement()->MaxAcceleration = 2048;
-			GetCharacterMovement()->GroundFriction = 8;
+			GetCharacterMovement()->MaxWalkSpeed = MovementSetting->MaxWalkSpeed;
+			GetCharacterMovement()->MaxAcceleration = MovementSetting->MaxAcceleration;
+			GetCharacterMovement()->GroundFriction = MovementSetting->GroundFriction;
 		break;
 		case Sprinting:
-			UE_LOG(LogTemp, Warning, TEXT("Sprinting"))
-			GetCharacterMovement()->MaxWalkSpeed = 750;
-			GetCharacterMovement()->MaxAcceleration = 2048;
-			GetCharacterMovement()->GroundFriction = 8;
+			GetCharacterMovement()->MaxWalkSpeed = MovementSetting->MaxWalkSpeed;
+			GetCharacterMovement()->MaxAcceleration = MovementSetting->MaxAcceleration;
+			GetCharacterMovement()->GroundFriction = MovementSetting->GroundFriction;
 		break;
 		case Dashing:
-			UE_LOG(LogTemp, Warning, TEXT("Dashing"))
-			GetCharacterMovement()->MaxWalkSpeed = 100000;
-			GetCharacterMovement()->MaxAcceleration = 100000;
-			GetCharacterMovement()->GroundFriction = 100;
+			GetCharacterMovement()->MaxWalkSpeed = MovementSetting->MaxWalkSpeed;
+			GetCharacterMovement()->MaxAcceleration = MovementSetting->MaxAcceleration;
+			GetCharacterMovement()->GroundFriction = MovementSetting->GroundFriction;
 		break;
 	}
 }
@@ -288,7 +315,8 @@ void ANagy::AddInputMappings(TArray<UInputAction*> InputActionArray) {
 		}
 
 		//TODO: Figure how to create and add input modifiers (to negate and swizzle WASD movement) 
-		/*// ... find it in the default Input Mapping Context
+		/*
+		// ... find it in the default Input Mapping Context
 		for (FEnhancedActionKeyMapping Element : InputDataAsset->MappingContext->GetMappings()) {
 			// When found...
 			if (InputAction == Element.Action) {
@@ -300,6 +328,7 @@ void ANagy::AddInputMappings(TArray<UInputAction*> InputActionArray) {
 					EnhancedActionKeyMapping.Add(Element);
 				}
 			}
-		}*/
+		}
+		*/
 	}
 }

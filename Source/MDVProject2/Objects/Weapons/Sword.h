@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Weapon.h"
+#include "MDVProject2/Utils/DataStructures.h"
 #include "Sword.generated.h"
 
 /**
@@ -17,6 +18,8 @@ public:
 	virtual void TriggerInteraction() override;
 
 	virtual FName GetSocket() override;
+
+	virtual EWeaponType GetWeaponType() override;
 
 protected:
 	// Called when the game starts or when spawned

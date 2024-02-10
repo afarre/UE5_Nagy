@@ -12,7 +12,11 @@ void ASword::TriggerInteraction() {
 
 FName ASword::GetSocket() {
 	UE_LOG(LogTemp, Warning, TEXT("returning a name from sword"))
-	return WeaponData->SocketName;
+	return WeaponData->EquippedSocketName;
+}
+
+EWeaponType ASword::GetWeaponType() {
+	return Sword;
 }
 
 void ASword::BeginPlay() {

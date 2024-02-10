@@ -12,6 +12,7 @@
 #include "MDVProject2/Utils/DataAssets/InputDataAsset.h"
 #include "MDVProject2/Utils/DataStructures.h"
 #include "MDVProject2/Utils/DataAssets/CameraZoomDataAsset.h"
+#include "MDVProject2/Utils/DataAssets/NiagaraDataAsset.h"
 #include "Nagy.generated.h"
 
 UCLASS()
@@ -27,22 +28,34 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void TriggerNiagaraEffect();
 	
 	UPROPERTY(BlueprintReadOnly)
-	AWeapon* EquippedWeapon;
+	TEnumAsByte<EWeaponType> EquippedWeapon;
+
+	UPROPERTY(BlueprintReadOnly)
+	TEnumAsByte<EWeaponType> StowedWeapon;
 	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	// Camera elements
+	// Character components
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Components)
 	USpringArmComponent* CameraBoom;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Components)
 	UCameraComponent* FollowCamera;
 
-	// Data assets
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Components)
+	UChildActorComponent* DashChildBP;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Components)
+	UNiagaraComponent* TrailNiagaraEffect;
+	
+	// Data assets/Tables
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
 	UInputDataAsset* InputDataAsset;
 
@@ -51,7 +64,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
 	UAnimationDataAsset* AnimationDataAsset;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
+	UDataTable* MovementSettings;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
+	UNiagaraDataAsset* NiagaraDataAsset;
+	
 private:
 	UPROPERTY()
 	APlayerController* PlayerController;
@@ -87,8 +106,8 @@ private:
 	// Delegates
 	void DashTimerDelegate();
 
-	void MontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted);
-
+	void InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted);
+	
 	// Montage
 	FOnMontageEnded CompleteDelegate;
 
@@ -105,4 +124,6 @@ private:
 	bool CharMovementFirstChange;
 
 	EMovementType CurrentMovementType;
+
+	TArray<FName> MovementSettingsArray;
 };

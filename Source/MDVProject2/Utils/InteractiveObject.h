@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DataStructures.h"
 #include "InteractiveObject.generated.h"
 
 /**
@@ -20,5 +21,7 @@ public:
 	virtual void TriggerInteraction();
 
 	virtual FName GetSocket();
+
+	virtual EWeaponType GetWeaponType();
 };
 

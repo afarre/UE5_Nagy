@@ -35,6 +35,10 @@ FName AWeapon::GetSocket() {
 	return IInteractiveInterface::GetSocket();
 }
 
+EWeaponType AWeapon::GetWeaponType() {
+	return Null;
+}
+
 
 void AWeapon::InitComponents() {
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));

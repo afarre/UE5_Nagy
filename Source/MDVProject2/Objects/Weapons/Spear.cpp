@@ -11,7 +11,11 @@ void ASpear::TriggerInteraction() {
 
 FName ASpear::GetSocket() {
 	UE_LOG(LogTemp, Warning, TEXT("returning a name from sword"))
-	return WeaponData->SocketName;
+	return WeaponData->EquippedSocketName;
+}
+
+EWeaponType ASpear::GetWeaponType() {
+	return Spear;
 }
 
 void ASpear::BeginPlay() {

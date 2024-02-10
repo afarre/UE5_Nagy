@@ -10,3 +10,7 @@ FName IInteractiveInterface::GetSocket() {
 	UE_LOG(LogTemp, Warning, TEXT("returning nothing from the interface"))
 	return "";
 }
+
+EWeaponType IInteractiveInterface::GetWeaponType() {
+	return Null;
+}

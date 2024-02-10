@@ -7,9 +7,18 @@ class MDVPROJECT2_API UAnimationDataAsset : public UPrimaryDataAsset {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere)
-	UAnimMontage* DodgeMontage;
-	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Movement)
 	UAnimMontage* InteractMontage;
+
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	UAnimMontage* OverShoulderEquip;
+
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	UAnimMontage* OverShoulderDisarm;
+
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	UAnimMontage* UnderArmEquip;
+
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	UAnimMontage* UnderArmDisarm;
 };

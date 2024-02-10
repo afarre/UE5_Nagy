@@ -6,7 +6,7 @@
 #include "MDVProject2/Objects/Weapons/Weapon.h"
 
 void UPickedWeaponNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) {
-	UE_LOG(LogTemp, Warning, TEXT("Pick montage notify"))
+	UE_LOG(LogTemp, Warning, TEXT("Picked montage notify"))
 
 	TArray<AActor*> OverlappingActors;
 	MeshComp->GetAttachParentActor()->GetOverlappingActors(OverlappingActors, UInteractiveInterface::StaticClass());

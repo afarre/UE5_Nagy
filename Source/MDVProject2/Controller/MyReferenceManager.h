@@ -22,8 +22,9 @@ public:
 	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	
-	static const ANagy* Nagy;
+
+	UPROPERTY()
+	ANagy* Nagy;
 
 	UPROPERTY()
 	AMyController* MyController;

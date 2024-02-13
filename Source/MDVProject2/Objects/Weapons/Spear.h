@@ -14,13 +14,6 @@ UCLASS()
 class MDVPROJECT2_API ASpear : public AWeapon {
 	GENERATED_BODY()
 
-public:
-	virtual void TriggerInteraction() override;
-
-	virtual FName GetSocket() override;
-
-	virtual EWeaponType GetWeaponType() override;
-	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

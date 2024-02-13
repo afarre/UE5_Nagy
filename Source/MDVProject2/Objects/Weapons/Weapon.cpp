@@ -22,23 +22,15 @@ void AWeapon::BeginPlay() {
 // Called every frame
 void AWeapon::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
-
 }
 
-void AWeapon::TriggerInteraction() {
-	IInteractiveInterface::TriggerInteraction();
-	UE_LOG(LogTemp, Warning, TEXT("i'm the weapon!!"))
+TWeakObjectPtr<AActor> AWeapon::GetObjectType() {
+	return this;
 }
 
-FName AWeapon::GetSocket() {
-	UE_LOG(LogTemp, Warning, TEXT("returning nothing from the weapon"))
-	return IInteractiveInterface::GetSocket();
+void AWeapon::DisableInteractCollisionBox() {
+	PickupCollisionBox->DestroyComponent();
 }
-
-EWeaponType AWeapon::GetWeaponType() {
-	return Null;
-}
-
 
 void AWeapon::InitComponents() {
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
@@ -49,6 +41,4 @@ void AWeapon::InitComponents() {
 
 	DamageCollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("DamageCollisionBox"));
 	DamageCollisionBox->SetupAttachment(WeaponMesh);
-
-	//bGenerateOverlapEventsDuringLevelStreaming = true;
 }

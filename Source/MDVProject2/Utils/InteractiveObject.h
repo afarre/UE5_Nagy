@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DataStructures.h"
 #include "InteractiveObject.generated.h"
 
 /**
@@ -18,10 +17,6 @@ class IInteractiveInterface {
 	GENERATED_BODY()
 
 public:
-	virtual void TriggerInteraction();
-
-	virtual FName GetSocket();
-
-	virtual EWeaponType GetWeaponType();
+	virtual TWeakObjectPtr<AActor> GetObjectType();
 };
 

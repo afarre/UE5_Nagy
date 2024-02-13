@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/Actor.h"
+#include "MDVProject2/Utils/DataStructures.h"
 #include "MDVProject2/Utils/InteractiveObject.h"
 #include "Weapon.generated.h"
 
@@ -18,12 +19,17 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	virtual TWeakObjectPtr<AActor> GetObjectType() override;
 
-	virtual void TriggerInteraction() override;
+	virtual void DisableInteractCollisionBox();
 
-	virtual FName GetSocket() override;
+	UPROPERTY(BlueprintReadOnly)
+	TEnumAsByte<EWeaponType> WeaponType;
 
-	virtual EWeaponType GetWeaponType() override;
+	FName StowedSocketName;
+
+	FName EquippedSocketName;
 	
 protected:
 	// Called when the game starts or when spawned

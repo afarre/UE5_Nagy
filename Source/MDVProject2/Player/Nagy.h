@@ -22,7 +22,7 @@ class MDVPROJECT2_API ANagy : public ACharacter {
 public:
 	// Sets default values for this character's properties
 	ANagy();
-	
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -32,11 +32,17 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void TriggerNiagaraEffect();
 	
-	UPROPERTY(BlueprintReadOnly)
+	/*UPROPERTY(BlueprintReadOnly)
 	TEnumAsByte<EWeaponType> EquippedWeapon;
 
 	UPROPERTY(BlueprintReadOnly)
-	TEnumAsByte<EWeaponType> StowedWeapon;
+	TEnumAsByte<EWeaponType> StowedWeapon;*/
+
+	UPROPERTY(BlueprintReadOnly)
+	TWeakObjectPtr<AWeapon> EquippedWeapon;
+
+	UPROPERTY(BlueprintReadOnly)
+	TWeakObjectPtr<AWeapon> StowedWeapon;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -79,12 +85,11 @@ private:
 	AMyReferenceManager* MyReferenceManager;
 
 	void InitComponents();
-
-	// Input
+	
+	// Input Action implementation functions
 	UPROPERTY()
 	UEnhancedInputLocalPlayerSubsystem* Subsystem;
 	
-	// Input Action implementation functions
 	void Move(const FInputActionValue& Value);
 
 	void Look(const FInputActionValue& Value);
@@ -108,6 +113,10 @@ private:
 
 	void InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted);
 	
+	void UnderArmDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted);
+
+	void OverShoulderDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted);
+	
 	// Montage
 	FOnMontageEnded CompleteDelegate;
 
@@ -126,4 +135,9 @@ private:
 	EMovementType CurrentMovementType;
 
 	TArray<FName> MovementSettingsArray;
+
+	// Weapon handling
+	void HandleWeaponInteract();
+	
+	void PickUpWeapon();
 };

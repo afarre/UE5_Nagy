@@ -11,8 +11,13 @@ void UPickedWeaponNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
 	TArray<AActor*> OverlappingActors;
 	MeshComp->GetAttachParentActor()->GetOverlappingActors(OverlappingActors, UInteractiveInterface::StaticClass());
 	if (!OverlappingActors.IsEmpty()) {
-		IInteractiveInterface* InteractiveInterface = Cast<IInteractiveInterface>(OverlappingActors[0]);
-		InteractiveInterface->TriggerInteraction();
-		OverlappingActors[0]->AttachToComponent(MeshComp, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), InteractiveInterface->GetSocket());
+		IInteractiveInterface* InteractiveClass = Cast<IInteractiveInterface>(OverlappingActors[0]);
+		if (InteractiveClass){
+			if (InteractiveClass->GetObjectType().Get()->GetClass()->IsChildOf(AWeapon::StaticClass())) {
+				AWeapon* Weapon = Cast<AWeapon>(InteractiveClass);
+				Weapon->DisableInteractCollisionBox();
+				Weapon->AttachToComponent(MeshComp, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), Weapon->EquippedSocketName);
+			}
+		}
 	}
 }

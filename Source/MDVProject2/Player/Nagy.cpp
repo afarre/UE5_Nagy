@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MDVProject2/Objects/Weapons/Weapon.h"
 #include "MDVProject2/Utils/DataStructures.h"
 #include "MDVProject2/Utils/InteractiveObject.h"
 
@@ -71,7 +72,7 @@ void ANagy::BeginPlay() {
 	TrailNiagaraEffect->Deactivate();
 	CharMovementFirstChange = false;
 	CurrentMovementType = Walking;
-	EquippedWeapon = StowedWeapon = Unarmed;
+	//EquippedWeapon = StowedWeapon = Unarmed;
 }
 
 // Called every frame
@@ -153,64 +154,14 @@ void ANagy::Dash(const FInputActionValue& Value) {
 }
 
 void ANagy::Interact(const FInputActionValue& Value) {
-	const bool InteractPressed = Value.Get<bool>();
-	UE_LOG(LogTemp, Warning, TEXT("EquipedWeapon: %d"), EquippedWeapon.GetIntValue());
-	if (StowedWeapon == Unarmed && EquippedWeapon != Unarmed) {
-		switch (EquippedWeapon) {
-			case Sword:
-				AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
-				break;
-			case Spear:
-				AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
-				break;
-			default: ;
-		}
-	} else if (EquippedWeapon == Unarmed && StowedWeapon == Unarmed) {
-		TArray<AActor*> OverlappingActors;
-		GetOverlappingActors(OverlappingActors, UInteractiveInterface::StaticClass());
-
-		if (!OverlappingActors.IsEmpty()) {
-			if (CurrentMovementType == Sprinting || CurrentMovementType == Dashing) {
-				TrailNiagaraEffect->Deactivate();
-				ModifyCharacterMovement(Walking);
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, UInteractiveInterface::StaticClass());
+	if (!OverlappingActors.IsEmpty()) {
+		IInteractiveInterface* InteractiveInterface = Cast<IInteractiveInterface>(OverlappingActors[0]);
+		if (InteractiveInterface){
+			if (InteractiveInterface->GetObjectType().Get()->GetClass()->IsChildOf(AWeapon::StaticClass())) {
+				HandleWeaponInteract();
 			}
-			// Create and change to a new Input Mapping Context
-			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->LookInputAction, Subsystem->QueryKeysMappedToAction(InputDataAsset->LookInputAction)[0]);
-			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->CameraZoomInputAction, Subsystem->QueryKeysMappedToAction(InputDataAsset->CameraZoomInputAction)[0]);
-
-			//TODO: Figure how to create and add input modifiers (to negate and swizzle WASD movement) 
-			/*
-			TArray<UInputAction*> InputActionArray;
-			/*InputActionArray.Add(InputDataAsset->LookInputAction);
-			InputActionArray.Add(InputDataAsset->CameraZoomInputAction);#1#
-
-			InputActionArray.Add(InputDataAsset->MoveInputAction);
-			
-			AddMappings(InputActionArray);
-			
-			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::W);
-			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::S);
-			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::A);
-			InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::D);
-
-			UInputModifier Modifier;
-			Modifier.ModifyRaw(Subsystem->GetPlayerInput(), );
-			
-			TArray<TObjectPtr<UInputModifier>> Modifiers;
-			Modifiers.Add(Modifier);
-			InputDataAsset->MoveInputAction->Modifiers = Modifiers;*/
-			
-			if (Subsystem) {
-				Subsystem->RemoveMappingContext(InputDataAsset->MappingContext);
-			}
-
-			//InputDataAsset->MappingContext->GetMappings()[0].Action
-
-			UE_LOG(LogTemp, Warning, TEXT("time played: %f"), AnimInstance->Montage_Play(AnimationDataAsset->InteractMontage, 1))
-
-			// Create delegate to notify end of montage
-			CompleteDelegate.BindUObject(this, &ANagy::InteractMontageEndDelegate);
-			GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(CompleteDelegate, AnimationDataAsset->InteractMontage);
 		}
 	}
 }
@@ -258,15 +209,15 @@ void ANagy::DashTimerDelegate() {
 }
 
 void ANagy::InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted) {
-	if (AnimMontage == AnimationDataAsset->InteractMontage) {
-		TArray<AActor*> OverlappingActors;
-		GetOverlappingActors(OverlappingActors, UInteractiveInterface::StaticClass());
-		if (!OverlappingActors.IsEmpty()) {
-			EquippedWeapon = Cast<IInteractiveInterface>(OverlappingActors[0])->GetWeaponType();
-			UE_LOG(LogTemp, Warning, TEXT("EEquippedWeapon: %d"), EquippedWeapon.GetIntValue());
+	TArray<AActor*> AttachedActors;
+	GetAttachedActors(AttachedActors);
+	for (AActor* AttachedActor : AttachedActors) {
+		if (AttachedActor->GetClass()->IsChildOf(AWeapon::StaticClass())) {
+			EquippedWeapon = Cast<AWeapon>(AttachedActor);
+			UE_LOG(LogTemp, Warning, TEXT("EEquippedWeapon: %d"), EquippedWeapon->WeaponType.GetIntValue());
 		}
 	}
-
+	
 	InputDataAsset->BlankMappingContext->UnmapAll();
 	// Return to default Input Mapping Context
 	if (Subsystem) {
@@ -274,6 +225,13 @@ void ANagy::InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrup
 	}
 }
 
+void ANagy::UnderArmDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted) {
+	PickUpWeapon();
+}
+
+void ANagy::OverShoulderDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted) {
+	PickUpWeapon();
+}
 
 /* Movement handling */
 
@@ -331,4 +289,73 @@ void ANagy::AddInputMappings(TArray<UInputAction*> InputActionArray) {
 		}
 		*/
 	}
+}
+
+ /* Weapon handling */
+
+void ANagy::HandleWeaponInteract() {
+//	UE_LOG(LogTemp, Warning, TEXT("EquippedWeapon: %d"), EquippedWeapon->WeaponType);
+	if (!StowedWeapon.IsValid() && EquippedWeapon.IsValid()) {
+		switch (EquippedWeapon->WeaponType) {
+			case Sword:
+				AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
+				// Create delegate to notify end of montage
+				CompleteDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate);
+				GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(CompleteDelegate, AnimationDataAsset->UnderArmDisarm);
+			break;
+			case Spear:
+				AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
+				// Create delegate to notify end of montage
+				CompleteDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate);
+				GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(CompleteDelegate, AnimationDataAsset->OverShoulderDisarm);
+			break;
+			default: ;
+		}
+	} else if (!StowedWeapon.IsValid() && !EquippedWeapon.IsValid()) {
+		PickUpWeapon();
+	}
+}
+
+void ANagy::PickUpWeapon() {
+	if (CurrentMovementType == Sprinting || CurrentMovementType == Dashing) {
+		TrailNiagaraEffect->Deactivate();
+		ModifyCharacterMovement(Walking);
+	}
+	// Create and change to a new Input Mapping Context
+	InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->LookInputAction, Subsystem->QueryKeysMappedToAction(InputDataAsset->LookInputAction)[0]);
+	InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->CameraZoomInputAction, Subsystem->QueryKeysMappedToAction(InputDataAsset->CameraZoomInputAction)[0]);
+
+	//TODO: Figure how to create and add input modifiers (to negate and swizzle WASD movement) 
+	/*
+	TArray<UInputAction*> InputActionArray;
+	/*InputActionArray.Add(InputDataAsset->LookInputAction);
+	InputActionArray.Add(InputDataAsset->CameraZoomInputAction);#1#
+
+	InputActionArray.Add(InputDataAsset->MoveInputAction);
+	
+	AddMappings(InputActionArray);
+	
+	InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::W);
+	InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::S);
+	InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::A);
+	InputDataAsset->BlankMappingContext->MapKey(InputDataAsset->MoveInputAction, EKeys::D);
+
+	UInputModifier Modifier;
+	Modifier.ModifyRaw(Subsystem->GetPlayerInput(), );
+	
+	TArray<TObjectPtr<UInputModifier>> Modifiers;
+	Modifiers.Add(Modifier);
+	InputDataAsset->MoveInputAction->Modifiers = Modifiers;*/
+		
+	if (Subsystem) {
+		Subsystem->RemoveMappingContext(InputDataAsset->MappingContext);
+	}
+
+	//InputDataAsset->MappingContext->GetMappings()[0].Action
+
+	UE_LOG(LogTemp, Warning, TEXT("time played: %f"), AnimInstance->Montage_Play(AnimationDataAsset->InteractMontage, 1))
+
+	// Create delegate to notify end of montage
+	CompleteDelegate.BindUObject(this, &ANagy::InteractMontageEndDelegate);
+	GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(CompleteDelegate, AnimationDataAsset->InteractMontage);
 }

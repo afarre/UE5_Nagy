@@ -3,6 +3,8 @@
 #include "Engine/DataTable.h"
 #include "DataStructures.generated.h"
 
+/* Data Tables */
+
 USTRUCT(BlueprintType)
 struct FWeaponData : public FTableRowBase {
 	GENERATED_BODY()
@@ -27,14 +29,6 @@ struct FWeaponData : public FTableRowBase {
 	}
 };
 
-UENUM()
-enum EMovementType {
-	Walking = 0,
-	Sprinting = 1,
-	Dashing = 2
-};
-
-
 USTRUCT(BlueprintType)
 struct FMovementSetting : public FTableRowBase {
 	GENERATED_BODY()
@@ -55,10 +49,18 @@ struct FMovementSetting : public FTableRowBase {
 	}
 };
 
+/* Enums */
+
+UENUM()
+enum EMovementType {
+	Walking = 0,
+	Sprinting = 1,
+	Dashing = 2
+};
+
 UENUM(BlueprintType)
 enum EWeaponType {
-	Null = 0,
-	Unarmed = 1,
-	Sword = 2,
-	Spear = 3,
+	Unarmed = 0,
+	Sword = 1,
+	Spear = 2,
 };

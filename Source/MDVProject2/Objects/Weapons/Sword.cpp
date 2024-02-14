@@ -14,5 +14,7 @@ void ASword::BeginPlay() {
 	if (WeaponData) {
 		StowedSocketName = WeaponData->StowedSocketName;
 		EquippedSocketName = WeaponData->EquippedSocketName;
+		IsPrimary = WeaponData->IsPrimary;
+		WeaponName = WeaponData->Name;
 	}
 }

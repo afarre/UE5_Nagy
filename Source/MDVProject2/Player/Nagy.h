@@ -29,21 +29,24 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// Visible to Blueprints
 	UFUNCTION(BlueprintImplementableEvent)
 	void TriggerNiagaraEffect();
-	
-	/*UPROPERTY(BlueprintReadOnly)
-	TEnumAsByte<EWeaponType> EquippedWeapon;
 
-	UPROPERTY(BlueprintReadOnly)
-	TEnumAsByte<EWeaponType> StowedWeapon;*/
-
+	// Weapon pointers
 	UPROPERTY(BlueprintReadOnly)
 	TWeakObjectPtr<AWeapon> EquippedWeapon;
 
 	UPROPERTY(BlueprintReadOnly)
-	TWeakObjectPtr<AWeapon> StowedWeapon;
-	
+	TWeakObjectPtr<AWeapon> PrimaryWeapon;
+
+	UPROPERTY(BlueprintReadOnly)
+	TWeakObjectPtr<AWeapon> SecondaryWeapon;
+
+	// Data assets/Tables
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
+	UAnimationDataAsset* AnimationDataAsset;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -67,9 +70,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
 	UCameraZoomDataAsset* CameraZoomDataAsset;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
-	UAnimationDataAsset* AnimationDataAsset;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
 	UDataTable* MovementSettings;
@@ -107,20 +107,21 @@ private:
 	void Sprint(const FInputActionValue& Value);
 
 	void Test(const FInputActionValue& Value);
+	
+	void ChangeWeapon(const FInputActionValue& Value);
 
 	// Delegates
+	FOnMontageEnded MontageEndedDelegate;
+	
 	void DashTimerDelegate();
 
 	void InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted);
 	
-	void UnderArmDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted);
+	void UnderArmDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted, bool Pickup);
 
-	void OverShoulderDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted);
-	
+	void OverShoulderDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted, bool Pickup);
+
 	// Montage
-	FOnMontageEnded CompleteDelegate;
-
-	FOnMontageEnded MontageEndedDelegate;
 	
 	UPROPERTY()
 	UAnimInstance* AnimInstance;

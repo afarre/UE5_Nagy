@@ -72,7 +72,6 @@ void ANagy::BeginPlay() {
 	TrailNiagaraEffect->Deactivate();
 	CharMovementFirstChange = false;
 	CurrentMovementType = Walking;
-	//EquippedWeapon = StowedWeapon = Unarmed;
 }
 
 // Called every frame
@@ -94,6 +93,7 @@ void ANagy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
 		EnhancedInputComponent->BindAction(InputDataAsset->CameraZoomInputAction, ETriggerEvent::Triggered, this, &ANagy::CameraZoom);
 		EnhancedInputComponent->BindAction(InputDataAsset->SprintInputAction, ETriggerEvent::Triggered, this, &ANagy::Sprint);
 		EnhancedInputComponent->BindAction(InputDataAsset->Test, ETriggerEvent::Triggered, this, &ANagy::Test);
+		EnhancedInputComponent->BindAction(InputDataAsset->ChangeWeapon, ETriggerEvent::Triggered, this, &ANagy::ChangeWeapon);
 	}
 }
 
@@ -158,10 +158,8 @@ void ANagy::Interact(const FInputActionValue& Value) {
 	GetOverlappingActors(OverlappingActors, UInteractiveInterface::StaticClass());
 	if (!OverlappingActors.IsEmpty()) {
 		IInteractiveInterface* InteractiveInterface = Cast<IInteractiveInterface>(OverlappingActors[0]);
-		if (InteractiveInterface){
-			if (InteractiveInterface->GetObjectType().Get()->GetClass()->IsChildOf(AWeapon::StaticClass())) {
-				HandleWeaponInteract();
-			}
+		if (InteractiveInterface && InteractiveInterface->GetObjectType().Get()->GetClass()->IsChildOf(AWeapon::StaticClass())){
+			HandleWeaponInteract();
 		}
 	}
 }
@@ -199,6 +197,26 @@ void ANagy::Test(const FInputActionValue& Value) {
 	UE_LOG(LogTemp, Warning, TEXT("Test key pressed"))
 }
 
+void ANagy::ChangeWeapon(const FInputActionValue& Value) {
+	if (Value.Get<bool>()) {
+		for (FKey Key : Subsystem->QueryKeysMappedToAction(InputDataAsset->ChangeWeapon)) {
+			if (PlayerController->IsInputKeyDown(Key)) {
+				// Player wants to equip primary weapon
+				if (Key == EKeys::One && PrimaryWeapon.IsValid() && PrimaryWeapon->IsEquipped == false) {
+					AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
+					// Create delegate to notify end of montage
+					MontageEndedDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate, false);
+					GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
+				} else if (Key == EKeys::Two && SecondaryWeapon.IsValid() && SecondaryWeapon->IsEquipped == false) {
+					AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
+					// Create delegate to notify end of montage
+					MontageEndedDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate, false);
+					GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
+				}
+			}
+		}
+	}
+}
 
 /* Delegates */
 
@@ -213,8 +231,15 @@ void ANagy::InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrup
 	GetAttachedActors(AttachedActors);
 	for (AActor* AttachedActor : AttachedActors) {
 		if (AttachedActor->GetClass()->IsChildOf(AWeapon::StaticClass())) {
-			EquippedWeapon = Cast<AWeapon>(AttachedActor);
-			UE_LOG(LogTemp, Warning, TEXT("EEquippedWeapon: %d"), EquippedWeapon->WeaponType.GetIntValue());
+			AWeapon* Weapon = Cast<AWeapon>(AttachedActor);
+			if (Weapon->IsEquipped) {
+				EquippedWeapon = Weapon;
+			}
+			if (Weapon->IsPrimary) {
+				PrimaryWeapon = Weapon;
+			} else {
+				SecondaryWeapon = Weapon;
+			}
 		}
 	}
 	
@@ -225,12 +250,22 @@ void ANagy::InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrup
 	}
 }
 
-void ANagy::UnderArmDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted) {
-	PickUpWeapon();
+void ANagy::UnderArmDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted, bool Pickup) {
+	if (Pickup) {
+		PickUpWeapon();
+	} else {
+		UE_LOG(LogTemp, Warning, TEXT("must equip main weapon"))
+		AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderEquip, 1);
+	}
 }
 
-void ANagy::OverShoulderDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted) {
-	PickUpWeapon();
+void ANagy::OverShoulderDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted, bool Pickup) {
+	if (Pickup) {
+		PickUpWeapon();
+	} else {
+		UE_LOG(LogTemp, Warning, TEXT("must equip secondary weapon"))
+		AnimInstance->Montage_Play(AnimationDataAsset->UnderArmEquip, 1);
+	}
 }
 
 /* Movement handling */
@@ -294,25 +329,18 @@ void ANagy::AddInputMappings(TArray<UInputAction*> InputActionArray) {
  /* Weapon handling */
 
 void ANagy::HandleWeaponInteract() {
-//	UE_LOG(LogTemp, Warning, TEXT("EquippedWeapon: %d"), EquippedWeapon->WeaponType);
-	if (!StowedWeapon.IsValid() && EquippedWeapon.IsValid()) {
-		switch (EquippedWeapon->WeaponType) {
-			case Sword:
-				AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
-				// Create delegate to notify end of montage
-				CompleteDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate);
-				GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(CompleteDelegate, AnimationDataAsset->UnderArmDisarm);
-			break;
-			case Spear:
-				AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
-				// Create delegate to notify end of montage
-				CompleteDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate);
-				GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(CompleteDelegate, AnimationDataAsset->OverShoulderDisarm);
-			break;
-			default: ;
-		}
-	} else if (!StowedWeapon.IsValid() && !EquippedWeapon.IsValid()) {
+	if (!PrimaryWeapon.IsValid() && !SecondaryWeapon.IsValid()) {
 		PickUpWeapon();
+	} else if (PrimaryWeapon.IsValid() && PrimaryWeapon->IsEquipped) {
+		AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
+		// Create delegate to notify end of montage
+		MontageEndedDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate, true);
+		GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
+	} else if (SecondaryWeapon.IsValid() && SecondaryWeapon->IsEquipped) {
+		AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
+		// Create delegate to notify end of montage
+		MontageEndedDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate, true);
+		GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
 	}
 }
 
@@ -356,6 +384,6 @@ void ANagy::PickUpWeapon() {
 	UE_LOG(LogTemp, Warning, TEXT("time played: %f"), AnimInstance->Montage_Play(AnimationDataAsset->InteractMontage, 1))
 
 	// Create delegate to notify end of montage
-	CompleteDelegate.BindUObject(this, &ANagy::InteractMontageEndDelegate);
-	GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(CompleteDelegate, AnimationDataAsset->InteractMontage);
+	MontageEndedDelegate.BindUObject(this, &ANagy::InteractMontageEndDelegate);
+	GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->InteractMontage);
 }

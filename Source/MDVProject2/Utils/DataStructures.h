@@ -20,12 +20,16 @@ struct FWeaponData : public FTableRowBase {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName StowedSocketName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool IsPrimary;
 	
 	FWeaponData() {
 		Name = "";
 		Damage = 0;
 		EquippedSocketName = "";
 		StowedSocketName = "";
+		IsPrimary = false;
 	}
 };
 

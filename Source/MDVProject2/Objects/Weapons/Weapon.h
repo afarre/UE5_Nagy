@@ -30,6 +30,12 @@ public:
 	FName StowedSocketName;
 
 	FName EquippedSocketName;
+
+	bool IsEquipped;
+
+	bool IsPrimary;
+
+	FName WeaponName;
 	
 protected:
 	// Called when the game starts or when spawned

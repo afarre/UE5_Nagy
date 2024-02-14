@@ -47,4 +47,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = InputAction)
 	UInputAction* Test;
+	
+	UPROPERTY(EditAnywhere, Category = InputAction)
+	UInputAction* ChangeWeapon;
 };

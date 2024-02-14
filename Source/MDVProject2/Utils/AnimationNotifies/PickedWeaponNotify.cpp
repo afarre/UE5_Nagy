@@ -17,6 +17,7 @@ void UPickedWeaponNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequence
 				AWeapon* Weapon = Cast<AWeapon>(InteractiveClass);
 				Weapon->DisableInteractCollisionBox();
 				Weapon->AttachToComponent(MeshComp, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, false), Weapon->EquippedSocketName);
+				Weapon->IsEquipped = true;
 			}
 		}
 	}

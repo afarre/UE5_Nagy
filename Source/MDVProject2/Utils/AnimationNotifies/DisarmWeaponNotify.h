@@ -1,6 +1,6 @@
 #pragma once
 
-#include "UDisarmWeaponNotify.generated.h"
+#include "DisarmWeaponNotify.generated.h"
 
 UCLASS()
 class UDisarmWeaponNotify : public UAnimNotify {

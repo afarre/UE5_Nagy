@@ -4,6 +4,12 @@
 #include "MDVProject2/Player/Nagy.h"
 
 
+UEquippedWeaponNotify::UEquippedWeaponNotify() {
+	#if WITH_EDITOR
+		bShouldFireInEditor = false;
+	#endif
+}
+
 void UEquippedWeaponNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) {
 	ANagy* Nagy = Cast<ANagy>(MeshComp->GetAttachParentActor());
 	if (Animation == Nagy->AnimationDataAsset->OverShoulderEquip) {

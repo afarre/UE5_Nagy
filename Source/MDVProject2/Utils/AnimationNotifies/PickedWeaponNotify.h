@@ -14,5 +14,7 @@ class MDVPROJECT2_API UPickedWeaponNotify : public UAnimNotify {
 	GENERATED_BODY()
 
 public:
+	UPickedWeaponNotify();
+	
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
 };

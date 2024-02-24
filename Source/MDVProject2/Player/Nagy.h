@@ -27,11 +27,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
 	// Visible to Blueprints
 	UFUNCTION(BlueprintImplementableEvent)
-	void TriggerNiagaraEffect();
+	void TriggerNiagaraDashEffect();
 
 	// Weapon pointers
 	UPROPERTY(BlueprintReadOnly)
@@ -46,6 +46,15 @@ public:
 	// Data assets/Tables
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
 	UAnimationDataAsset* AnimationDataAsset;
+
+	// Trigger spells from AnimBlueprint
+	UFUNCTION(BlueprintCallable)
+	void TriggerSpell1(UClass* Class);
+	
+	UFUNCTION(BlueprintCallable)
+	void TriggerSpell2();
+	
+	FHitResult CalculateTraceTrajectory();
 
 protected:
 	// Called when the game starts or when spawned
@@ -69,13 +78,16 @@ protected:
 	UInputDataAsset* InputDataAsset;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
-	UCameraZoomDataAsset* CameraZoomDataAsset;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
-	UDataTable* MovementSettings;
+	UCameraZoomDataAsset* CameraDataAsset;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
 	UNiagaraDataAsset* NiagaraDataAsset;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataTables)
+	UDataTable* MovementSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataTables)
+	UDataTable* AbilitiesSettings;
 	
 private:
 	UPROPERTY()
@@ -110,10 +122,18 @@ private:
 	
 	void ChangeWeapon(const FInputActionValue& Value);
 
+	void Spell1Triggered(const FInputActionValue& InputActionValue);
+	
+	void Spell2Ongoing();
+	
+	void Spell2();
+	
 	// Delegates
 	FOnMontageEnded MontageEndedDelegate;
 	
-	void DashTimerDelegate();
+	void DashAbilityTimerDelegate();
+	
+	void DashCooldownTimerDelegate();
 
 	void InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted);
 	
@@ -122,7 +142,6 @@ private:
 	void OverShoulderDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted, bool Pickup);
 
 	// Montage
-	
 	UPROPERTY()
 	UAnimInstance* AnimInstance;
 	
@@ -131,14 +150,17 @@ private:
 
 	void AddInputMappings(TArray<UInputAction*> InputActionArray);
 
-	bool CharMovementFirstChange;
+	bool MovementFirstChange;
 
 	EMovementType CurrentMovementType;
 
 	TArray<FName> MovementSettingsArray;
 
 	// Weapon handling
-	void HandleWeaponInteract();
+	void HandleWeaponInteract(const AWeapon* Weapon);
 	
 	void PickUpWeapon();
+
+	// Abilities
+	TArray<FName> AbilitiesArray;
 };

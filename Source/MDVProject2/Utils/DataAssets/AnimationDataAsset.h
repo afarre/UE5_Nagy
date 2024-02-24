@@ -7,7 +7,7 @@ class MDVPROJECT2_API UAnimationDataAsset : public UPrimaryDataAsset {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, Category = Movement)
+	UPROPERTY(EditAnywhere, Category = Weapon)
 	UAnimMontage* InteractMontage;
 
 	UPROPERTY(EditAnywhere, Category = Weapon)
@@ -21,4 +21,16 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	UAnimMontage* UnderArmDisarm;
+
+	UPROPERTY(EditAnywhere, Category = Attack)
+	UAnimMontage* UpwardsThrust;
+
+	UPROPERTY(EditAnywhere, Category = Attack)
+	UAnimMontage* Slash;
+
+	UPROPERTY(EditAnywhere, Category = Attack)
+	UAnimMontage* Spell1;
+
+	UPROPERTY(EditAnywhere, Category = Attack)
+	UAnimMontage* Spell2;
 };

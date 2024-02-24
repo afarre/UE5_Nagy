@@ -8,6 +8,9 @@ class MDVPROJECT2_API UCameraZoomDataAsset : public UPrimaryDataAsset {
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float ZOffset = 50.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float ZoomStep = 20.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

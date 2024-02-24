@@ -9,9 +9,12 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MDVProject2/Objects/VFX/Laser.h"
+#include "MDVProject2/Objects/VFX/PlasmaBall.h"
 #include "MDVProject2/Objects/Weapons/Weapon.h"
+#include "MDVProject2/UI/Widgets/CombatHUD.h"
 #include "MDVProject2/Utils/DataStructures.h"
-#include "MDVProject2/Utils/InteractiveObject.h"
+#include "MDVProject2/Utils/Interfaces/InteractiveObject.h"
 
 // Sets default values
 ANagy::ANagy() {
@@ -50,6 +53,55 @@ void ANagy::InitComponents() {
 	TrailNiagaraEffect->SetupAttachment(GetMesh());
 }
 
+void ANagy::TriggerSpell1(UClass* Class) {
+	FActorSpawnParameters ActorSpawnParameters;
+	ActorSpawnParameters.Owner = this;
+
+	FVector PlayerTraceStart = GetMesh()->GetSocketLocation("LeftHandSocket");
+	APlasmaBall* PlasmaBall = GetWorld()->SpawnActor<APlasmaBall>(Class, PlayerTraceStart, FollowCamera->GetComponentRotation(), ActorSpawnParameters);
+
+	//Class = GetWorld()->SpawnActor<APlasmaBall>(APlasmaBall::StaticClass(), PlayerTraceStart, FollowCamera->GetComponentRotation(), ActorSpawnParameters);
+	FHitResult TraceHit = CalculateTraceTrajectory();
+
+	FVector TraceHitLocation = FVector(TraceHit.ImpactPoint.X, TraceHit.ImpactPoint.Y, TraceHit.ImpactPoint.Z);
+	DrawDebugLine(GetWorld(), FollowCamera->GetComponentLocation(), TraceHitLocation, FColor::Blue, false, 5.0f, 0, 2.0f);
+	if (TraceHit.bBlockingHit && IsValid(TraceHit.GetActor())) {
+		FVector ProjectileMovementComponentVelocity = TraceHitLocation - PlayerTraceStart;
+		PlasmaBall->SetVelocity(ProjectileMovementComponentVelocity);
+	} else {
+		PlasmaBall->SetVelocity(FollowCamera->GetForwardVector());
+	}
+}
+
+void ANagy::TriggerSpell2() {
+	FActorSpawnParameters ActorSpawnParameters;
+	ActorSpawnParameters.Owner = this;
+	
+	FVector PlayerTraceStart = GetMesh()->GetSocketLocation("LeftHandSocket");
+	ALaser* Laser = GetWorld()->SpawnActor<ALaser>(ALaser::StaticClass(), PlayerTraceStart, FollowCamera->GetComponentRotation(), ActorSpawnParameters);
+	FHitResult TraceHit = CalculateTraceTrajectory();
+
+	FVector TraceHitLocation = FVector(TraceHit.ImpactPoint.X, TraceHit.ImpactPoint.Y, TraceHit.ImpactPoint.Z);
+	DrawDebugLine(GetWorld(), FollowCamera->GetComponentLocation(), TraceHitLocation, FColor::Blue, false, 5.0f, 0, 2.0f);
+	if (TraceHit.bBlockingHit && IsValid(TraceHit.GetActor())) {
+		FVector ProjectileMovementComponentVelocity = TraceHitLocation - PlayerTraceStart;
+		Laser->SetVelocity(ProjectileMovementComponentVelocity);
+	} else {
+		Laser->SetVelocity(FollowCamera->GetForwardVector());
+	}
+}
+
+FHitResult ANagy::CalculateTraceTrajectory() {
+	FHitResult TraceHit;
+	FVector TraceStart = FollowCamera->GetComponentLocation();
+	FVector TraceEnd = FollowCamera->GetComponentLocation() + FollowCamera->GetForwardVector() * 10000.0f;
+	FCollisionQueryParams CollisionQueryParams;
+	CollisionQueryParams.AddIgnoredActor(this);
+	
+	GetWorld()->LineTraceSingleByChannel(TraceHit, TraceStart, TraceEnd, ECC_Visibility, CollisionQueryParams);
+	return TraceHit;
+}
+
 // Called when the game starts or when spawned
 void ANagy::BeginPlay() {
 	Super::BeginPlay();
@@ -67,10 +119,12 @@ void ANagy::BeginPlay() {
 	}
 
 	MyReferenceManager = Cast<AMyReferenceManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyReferenceManager::StaticClass()));
+	CameraBoom->AddRelativeLocation(FVector(0, 0, CameraDataAsset->ZOffset));
 	MovementSettingsArray = MovementSettings->GetRowNames();
+	AbilitiesArray = AbilitiesSettings->GetRowNames();
 	AnimInstance = GetMesh()->GetAnimInstance();
 	TrailNiagaraEffect->Deactivate();
-	CharMovementFirstChange = false;
+	MovementFirstChange = false;
 	CurrentMovementType = Walking;
 }
 
@@ -94,6 +148,9 @@ void ANagy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
 		EnhancedInputComponent->BindAction(InputDataAsset->SprintInputAction, ETriggerEvent::Triggered, this, &ANagy::Sprint);
 		EnhancedInputComponent->BindAction(InputDataAsset->Test, ETriggerEvent::Triggered, this, &ANagy::Test);
 		EnhancedInputComponent->BindAction(InputDataAsset->ChangeWeapon, ETriggerEvent::Triggered, this, &ANagy::ChangeWeapon);
+		EnhancedInputComponent->BindAction(InputDataAsset->Spell1, ETriggerEvent::Triggered, this, &ANagy::Spell1Triggered);
+		EnhancedInputComponent->BindAction(InputDataAsset->Spell1, ETriggerEvent::Ongoing, this, &ANagy::Spell2Ongoing);
+		EnhancedInputComponent->BindAction(InputDataAsset->Spell2, ETriggerEvent::Triggered, this, &ANagy::Spell2);
 	}
 }
 
@@ -134,6 +191,11 @@ void ANagy::Look(const FInputActionValue& Value) {
 void ANagy::Attack(const FInputActionValue& Value) {
 	const bool Attack = Value.Get<bool>();
 	UE_LOG(LogTemp, Warning, TEXT("Attack clicked %d: "), Attack)
+	if (PrimaryWeapon.IsValid() && PrimaryWeapon->IsEquipped) {
+		AnimInstance->Montage_Play(AnimationDataAsset->UpwardsThrust, 1);
+	} else if (SecondaryWeapon.IsValid() && SecondaryWeapon->IsEquipped) {
+		AnimInstance->Montage_Play(AnimationDataAsset->Slash, 1);
+	}
 }
 
 void ANagy::Block(const FInputActionValue& Value) {
@@ -144,12 +206,13 @@ void ANagy::Block(const FInputActionValue& Value) {
 void ANagy::Dash(const FInputActionValue& Value) {
 	// TODO: Deactivate all inputs other than camera and WASD (to avoid interacting mid dash for example). Prerequisite: learn how to add input modifiers for the WASD input
 	if (GetCharacterMovement()->MaxWalkSpeed >= MovementSettings->FindRow<FMovementSetting>(MovementSettingsArray[Sprinting], "", true)->MaxWalkSpeed) {
-		TriggerNiagaraEffect();
+		TriggerNiagaraDashEffect();
 		ModifyCharacterMovement(Dashing);
 		GetMesh()->AnimScriptInstance->GetOwningComponent()->GlobalAnimRateScale = 0.0f;
 
+		const FAbilitiesSettings* AbilitySettings = AbilitiesSettings->FindRow<FAbilitiesSettings>(AbilitiesArray[EAbilities::Dash], "", true);
 		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &ANagy::DashTimerDelegate, 1.0f, false, .04f);
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ANagy::DashAbilityTimerDelegate, 1.0f, false, AbilitySettings->Duration);
 	}
 }
 
@@ -159,7 +222,7 @@ void ANagy::Interact(const FInputActionValue& Value) {
 	if (!OverlappingActors.IsEmpty()) {
 		IInteractiveInterface* InteractiveInterface = Cast<IInteractiveInterface>(OverlappingActors[0]);
 		if (InteractiveInterface && InteractiveInterface->GetObjectType().Get()->GetClass()->IsChildOf(AWeapon::StaticClass())){
-			HandleWeaponInteract();
+			HandleWeaponInteract(Cast<AWeapon>(InteractiveInterface));
 		}
 	}
 }
@@ -168,27 +231,27 @@ void ANagy::CameraZoom(const FInputActionValue& Value) {
 	const FVector DirectionValue = Value.Get<FVector>();
     if (GetController()) {
     	if (DirectionValue.X != 0) {
-    		const float NewTargetArmLength = CameraBoom->TargetArmLength + (-DirectionValue.X * CameraZoomDataAsset->ZoomStep);
+    		const float NewTargetArmLength = CameraBoom->TargetArmLength + (-DirectionValue.X * CameraDataAsset->ZoomStep);
     		const FVector TransformedVector = FVector(0, 0, DirectionValue.X);
-		    static const FVector MaxCameraHeight = FVector(0, 0, CameraZoomDataAsset->MaxCameraZoom / 2);
-    		static const FVector MinCameraHeight = FVector(0, 0, CameraZoomDataAsset->MinCameraZoom);
-    		CameraBoom->SetRelativeLocation(ClampVector(CameraBoom->GetRelativeLocation() + (-TransformedVector * CameraZoomDataAsset->ZoomStep / 2), MinCameraHeight, MaxCameraHeight));
-    		CameraBoom->TargetArmLength = FMath::Clamp(NewTargetArmLength, CameraZoomDataAsset->MinCameraZoom, CameraZoomDataAsset->MaxCameraZoom);
+		    static const FVector MaxCameraHeight = FVector(0, 0, CameraDataAsset->MaxCameraZoom / 2);
+    		static const FVector MinCameraHeight = FVector(0, 0, CameraDataAsset->ZOffset);
+    		CameraBoom->SetRelativeLocation(ClampVector(CameraBoom->GetRelativeLocation() + (-TransformedVector * CameraDataAsset->ZoomStep / 2), MinCameraHeight, MaxCameraHeight));
+    		CameraBoom->TargetArmLength = FMath::Clamp(NewTargetArmLength, CameraDataAsset->MinCameraZoom, CameraDataAsset->MaxCameraZoom);
     	}
     }
 }
 
 void ANagy::Sprint(const FInputActionValue& Value) {
-	if (Value.Get<bool>() && !CharMovementFirstChange) {
+	if (Value.Get<bool>() && !MovementFirstChange) {
 		TrailNiagaraEffect->Activate();
 		ModifyCharacterMovement(Sprinting);
-		CharMovementFirstChange = true;
+		MovementFirstChange = true;
 		CurrentMovementType = Sprinting;
 	} 
 	if (!Value.Get<bool>()) {
 		TrailNiagaraEffect->Deactivate();
 		ModifyCharacterMovement(Walking);
-		CharMovementFirstChange = false;
+		MovementFirstChange = false;
 		CurrentMovementType = Walking;
 	}
 }
@@ -218,12 +281,33 @@ void ANagy::ChangeWeapon(const FInputActionValue& Value) {
 	}
 }
 
+void ANagy::Spell1Triggered(const FInputActionValue& InputActionValue) {
+	AnimInstance->Montage_Play(AnimationDataAsset->Spell1, 1);
+}
+
+void ANagy::Spell2Ongoing() {
+	//UE_LOG(LogTemp, Warning, TEXT("Spell ongoing"))
+}
+
+void ANagy::Spell2() {
+	AnimInstance->Montage_Play(AnimationDataAsset->Spell2, 1);
+}
+
 /* Delegates */
 
-void ANagy::DashTimerDelegate() {
+void ANagy::DashAbilityTimerDelegate() {
 	// Set the current movement type
 	ModifyCharacterMovement(CurrentMovementType);
 	GetMesh()->AnimScriptInstance->GetOwningComponent()->GlobalAnimRateScale = 1.0f;
+
+	const FAbilitiesSettings* AbilitySettings = AbilitiesSettings->FindRow<FAbilitiesSettings>(AbilitiesArray[EAbilities::Dash], "", true);
+	InputDataAsset->MappingContext->UnmapKey(InputDataAsset->DashInputAction, EKeys::SpaceBar);
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ANagy::DashCooldownTimerDelegate, 1.0f, false, AbilitySettings->Cooldown);
+}
+
+void ANagy::DashCooldownTimerDelegate() {
+	InputDataAsset->MappingContext->MapKey(InputDataAsset->DashInputAction, EKeys::SpaceBar);
 }
 
 void ANagy::InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted) {
@@ -328,19 +412,25 @@ void ANagy::AddInputMappings(TArray<UInputAction*> InputActionArray) {
 
  /* Weapon handling */
 
-void ANagy::HandleWeaponInteract() {
-	if (!PrimaryWeapon.IsValid() && !SecondaryWeapon.IsValid()) {
-		PickUpWeapon();
-	} else if (PrimaryWeapon.IsValid() && PrimaryWeapon->IsEquipped) {
-		AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
-		// Create delegate to notify end of montage
-		MontageEndedDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate, true);
-		GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
-	} else if (SecondaryWeapon.IsValid() && SecondaryWeapon->IsEquipped) {
-		AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
-		// Create delegate to notify end of montage
-		MontageEndedDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate, true);
-		GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
+void ANagy::HandleWeaponInteract(const AWeapon* Weapon) {
+	if (Weapon->IsPrimary && !PrimaryWeapon.IsValid()) {
+		if (SecondaryWeapon.IsValid()) {
+			AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
+			// Create delegate to notify end of montage
+			MontageEndedDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate, true);
+			GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
+		} else {
+			PickUpWeapon();
+		}
+	} else if (!Weapon->IsPrimary && !SecondaryWeapon.IsValid()) {
+		if (PrimaryWeapon.IsValid()) {
+			AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
+			// Create delegate to notify end of montage
+			MontageEndedDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate, true);
+			GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
+		} else {
+			PickUpWeapon();
+		}
 	}
 }
 

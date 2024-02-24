@@ -6,7 +6,11 @@
 UCLASS(Blueprintable)
 class UNiagaraDataAsset : public UPrimaryDataAsset {
 	GENERATED_BODY()
+	
 public:
 	UPROPERTY(EditAnywhere, Category = MovementEffects)
-	UNiagaraSystem* DashEffect;
+	UNiagaraSystem* PlasmaBall;
+
+	UPROPERTY(EditAnywhere, Category = MovementEffects)
+	UNiagaraSystem* Laser;
 };

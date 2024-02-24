@@ -5,7 +5,7 @@
 
 void ASword::BeginPlay() {
 	if (WeaponsDataTable) {
-		WeaponData = WeaponsDataTable->FindRow<FWeaponData>(FName(*WeaponMesh->GetStaticMesh()->GetName()), "");
+		WeaponData = WeaponsDataTable->FindRow<FWeaponData>(WeaponNamesArray[Sword], "Sword");
 		UE_LOG(LogTemp, Warning, TEXT("Name (sword): %s"), *WeaponData->Name.ToString())
 	}
 	

@@ -50,4 +50,10 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = InputAction)
 	UInputAction* ChangeWeapon;
+	
+	UPROPERTY(EditAnywhere, Category = InputAction)
+	UInputAction* Spell1;
+
+	UPROPERTY(EditAnywhere, Category = InputAction)
+	UInputAction* Spell2;
 };

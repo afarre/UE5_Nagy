@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "MDVProject2/UI/Widgets/MainMenu.h"
+#include "MDVProject2/UI/Widgets/CombatHUD.h"
 #include "MyHUD.generated.h"
 
 /**
@@ -14,10 +14,11 @@ UCLASS()
 class MDVPROJECT2_API AMyHUD : public AHUD {
 	GENERATED_BODY()
 
-private:
-	UPROPERTY(EditDefaultsOnly, Category="Widgets")
-	UDataAsset* WidgetDataAsset;
-
+public:
+	virtual void BeginPlay() override;
 	
+private:
+	UPROPERTY(EditDefaultsOnly, Category="Widget")
+	UCombatHUD* CombatHUD;
 
 };

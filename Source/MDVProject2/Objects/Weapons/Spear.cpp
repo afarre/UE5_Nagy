@@ -5,7 +5,7 @@
 
 void ASpear::BeginPlay() {
 	if (WeaponsDataTable) {
-		WeaponData = WeaponsDataTable->FindRow<FWeaponData>(FName(*WeaponMesh->GetStaticMesh()->GetName()), "");
+		WeaponData = WeaponsDataTable->FindRow<FWeaponData>(WeaponNamesArray[Spear], "Spear");
 		UE_LOG(LogTemp, Warning, TEXT("Name (spear): %s"), *WeaponData->Name.ToString())
 	}
 	

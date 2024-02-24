@@ -11,7 +11,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract)
 class MDVPROJECT2_API UMainMenu : public UUserWidget {
 	GENERATED_BODY()
 

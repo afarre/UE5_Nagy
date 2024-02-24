@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engine/DataTable.h"
+#include "MDVProject2/Objects/VFX/Spell.h"
 #include "DataStructures.generated.h"
 
 /* Data Tables */
@@ -53,6 +54,28 @@ struct FMovementSetting : public FTableRowBase {
 	}
 };
 
+USTRUCT(BlueprintType)
+struct FAbilitiesSettings : public FTableRowBase {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Cooldown;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Duration;
+};
+
+USTRUCT(BlueprintType)
+struct FEnemySettings : public FTableRowBase {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxHealth;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UNiagaraSystem* DeathNiagaraEffect;
+};
+
 /* Enums */
 
 UENUM()
@@ -60,6 +83,18 @@ enum EMovementType {
 	Walking = 0,
 	Sprinting = 1,
 	Dashing = 2
+};
+
+UENUM()
+enum EAbilities {
+	Dash = 0,
+	Spell1 = 1,
+	Spell2 = 2
+};
+
+UENUM()
+enum EEnemy {
+	SkeletonWarrior = 0
 };
 
 UENUM(BlueprintType)

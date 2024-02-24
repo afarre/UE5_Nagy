@@ -10,4 +10,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	UUserWidget* MainMenu;
 
+	UPROPERTY(EditAnywhere)
+	UUserWidget* CombatHUD;
+
 };

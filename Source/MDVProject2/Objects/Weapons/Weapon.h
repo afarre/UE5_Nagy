@@ -6,14 +6,14 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/Actor.h"
 #include "MDVProject2/Utils/DataStructures.h"
-#include "MDVProject2/Utils/InteractiveObject.h"
+#include "MDVProject2/Utils/Interfaces/InteractiveObject.h"
 #include "Weapon.generated.h"
 
 UCLASS(Abstract)
 class MDVPROJECT2_API AWeapon : public AActor, public IInteractiveInterface {
 	GENERATED_BODY()
 	
-public:	
+public:
 	// Sets default values for this actor's properties
 	AWeapon();
 
@@ -36,11 +36,20 @@ public:
 	bool IsPrimary;
 
 	FName WeaponName;
-	
+
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(BlueprintCallable)
+	void EnableOverlap();
+
+	UFUNCTION(BlueprintCallable)
+	void DisableOverlap();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Components)
 	UStaticMeshComponent* WeaponMesh;
 
@@ -53,9 +62,8 @@ protected:
 	void InitComponents();
 
 	// Data asset for weapon statistics
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
-	UDataTable* WeaponsDataAsset;
-	
 	UPROPERTY()
 	UDataTable* WeaponsDataTable;
+
+	TArray<FName> WeaponNamesArray;
 };

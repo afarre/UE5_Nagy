@@ -3,6 +3,7 @@
 #include "Components/ArrowComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "MDVProject2/Utils/DataStructures.h"
 
 #include "Spell.generated.h"
 
@@ -17,6 +18,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual void SetVelocity(const FVector& HitDirection);
+
 	UPROPERTY()
 	UProjectileMovementComponent* ProjectileMovementComponent;
 
@@ -28,8 +31,18 @@ protected:
 	USphereComponent* CollisionSphere;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UNiagaraSystem* NiagaraSystem;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UArrowComponent* ArrowComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
 	UNiagaraDataAsset* NiagaraEffects;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UDataTable* SpellStatistics;
+
+	TArray<FName> Spells;
+
+	FSpellStatistics* Statistics;
 };

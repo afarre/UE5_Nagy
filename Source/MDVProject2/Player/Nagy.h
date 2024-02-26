@@ -49,10 +49,7 @@ public:
 
 	// Trigger spells from AnimBlueprint
 	UFUNCTION(BlueprintCallable)
-	void TriggerSpell1(UClass* Class);
-	
-	UFUNCTION(BlueprintCallable)
-	void TriggerSpell2();
+	void TriggerSpell(UClass* Class);
 	
 	FHitResult CalculateTraceTrajectory();
 

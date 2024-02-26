@@ -6,13 +6,12 @@
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
 #include "NiagaraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "MDVProject2/Objects/VFX/Laser.h"
 #include "MDVProject2/Objects/VFX/PlasmaBall.h"
 #include "MDVProject2/Objects/Weapons/Weapon.h"
-#include "MDVProject2/UI/Widgets/CombatHUD.h"
 #include "MDVProject2/Utils/DataStructures.h"
 #include "MDVProject2/Utils/Interfaces/InteractiveObject.h"
 
@@ -25,6 +24,7 @@ ANagy::ANagy() {
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 	
 	InitComponents();
+	GetCapsuleComponent()->SetCollisionObjectType(ECC_GameTraceChannel1);
 }
 
 void ANagy::InitComponents() {
@@ -51,43 +51,26 @@ void ANagy::InitComponents() {
 	// Add sprinting Niagara effect
 	TrailNiagaraEffect = CreateDefaultSubobject<UNiagaraComponent>("TrailNiagaraEffect");
 	TrailNiagaraEffect->SetupAttachment(GetMesh());
+	TrailNiagaraEffect->SetAutoActivate(false);
 }
 
-void ANagy::TriggerSpell1(UClass* Class) {
+void ANagy::TriggerSpell(UClass* Class) {
 	FActorSpawnParameters ActorSpawnParameters;
 	ActorSpawnParameters.Owner = this;
 
 	FVector PlayerTraceStart = GetMesh()->GetSocketLocation("LeftHandSocket");
-	APlasmaBall* PlasmaBall = GetWorld()->SpawnActor<APlasmaBall>(Class, PlayerTraceStart, FollowCamera->GetComponentRotation(), ActorSpawnParameters);
+	ASpell* Spell = GetWorld()->SpawnActor<ASpell>(Class, PlayerTraceStart, FollowCamera->GetComponentRotation(), ActorSpawnParameters);
 
-	//Class = GetWorld()->SpawnActor<APlasmaBall>(APlasmaBall::StaticClass(), PlayerTraceStart, FollowCamera->GetComponentRotation(), ActorSpawnParameters);
 	FHitResult TraceHit = CalculateTraceTrajectory();
-
-	FVector TraceHitLocation = FVector(TraceHit.ImpactPoint.X, TraceHit.ImpactPoint.Y, TraceHit.ImpactPoint.Z);
-	DrawDebugLine(GetWorld(), FollowCamera->GetComponentLocation(), TraceHitLocation, FColor::Blue, false, 5.0f, 0, 2.0f);
-	if (TraceHit.bBlockingHit && IsValid(TraceHit.GetActor())) {
-		FVector ProjectileMovementComponentVelocity = TraceHitLocation - PlayerTraceStart;
-		PlasmaBall->SetVelocity(ProjectileMovementComponentVelocity);
-	} else {
-		PlasmaBall->SetVelocity(FollowCamera->GetForwardVector());
-	}
-}
-
-void ANagy::TriggerSpell2() {
-	FActorSpawnParameters ActorSpawnParameters;
-	ActorSpawnParameters.Owner = this;
-	
-	FVector PlayerTraceStart = GetMesh()->GetSocketLocation("LeftHandSocket");
-	ALaser* Laser = GetWorld()->SpawnActor<ALaser>(ALaser::StaticClass(), PlayerTraceStart, FollowCamera->GetComponentRotation(), ActorSpawnParameters);
-	FHitResult TraceHit = CalculateTraceTrajectory();
-
-	FVector TraceHitLocation = FVector(TraceHit.ImpactPoint.X, TraceHit.ImpactPoint.Y, TraceHit.ImpactPoint.Z);
-	DrawDebugLine(GetWorld(), FollowCamera->GetComponentLocation(), TraceHitLocation, FColor::Blue, false, 5.0f, 0, 2.0f);
-	if (TraceHit.bBlockingHit && IsValid(TraceHit.GetActor())) {
-		FVector ProjectileMovementComponentVelocity = TraceHitLocation - PlayerTraceStart;
-		Laser->SetVelocity(ProjectileMovementComponentVelocity);
-	} else {
-		Laser->SetVelocity(FollowCamera->GetForwardVector());
+	if (Spell) {
+		if (TraceHit.bBlockingHit && IsValid(TraceHit.GetActor())) {
+			FVector TraceHitLocation = FVector(TraceHit.ImpactPoint.X, TraceHit.ImpactPoint.Y, TraceHit.ImpactPoint.Z);
+			//DrawDebugLine(GetWorld(), FollowCamera->GetComponentLocation(), TraceHitLocation, FColor::Blue, false, 5.0f, 0, 2.0f);
+			FVector ProjectileMovementComponentVelocity = TraceHitLocation - PlayerTraceStart;
+			Spell->SetVelocity(ProjectileMovementComponentVelocity);
+		} else {
+			Spell->SetVelocity(FollowCamera->GetForwardVector());
+		}
 	}
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "NiagaraSystem.h"
 #include "Engine/DataTable.h"
-#include "MDVProject2/Objects/VFX/Spell.h"
 #include "DataStructures.generated.h"
 
 /* Data Tables */
@@ -76,6 +76,38 @@ struct FEnemySettings : public FTableRowBase {
 	UNiagaraSystem* DeathNiagaraEffect;
 };
 
+USTRUCT(BlueprintType)
+struct FSpellStatistics : public FTableRowBase {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UNiagaraSystem* BaseNiagaraSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FRotator Rotation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Velocity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float BaseDamage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UNiagaraSystem* HitNiagaraSystem;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float HitScale;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int HitRadius;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int LifeSpan;
+};
+
 /* Enums */
 
 UENUM()
@@ -90,6 +122,12 @@ enum EAbilities {
 	Dash = 0,
 	Spell1 = 1,
 	Spell2 = 2
+};
+
+UENUM()
+enum ESpells {
+	PlasmaBall = 0,
+	Laser = 1
 };
 
 UENUM()

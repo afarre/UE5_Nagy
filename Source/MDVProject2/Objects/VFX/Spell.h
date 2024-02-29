@@ -7,8 +7,6 @@
 
 #include "Spell.generated.h"
 
-class UNiagaraDataAsset;
-
 UCLASS()
 class MDVPROJECT2_API ASpell : public AActor {
 	GENERATED_BODY()
@@ -35,9 +33,6 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UArrowComponent* ArrowComponent;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
-	UNiagaraDataAsset* NiagaraEffects;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UDataTable* SpellStatistics;

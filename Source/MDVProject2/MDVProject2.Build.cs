@@ -6,6 +6,7 @@ public class MDVProject2 : ModuleRules
 {
 	public MDVProject2(ReadOnlyTargetRules Target) : base(Target)
 	{
+		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule", "AIModule" });
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "AnimGraphRuntime", "Niagara", "UMG" });

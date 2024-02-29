@@ -6,6 +6,8 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "MDVProject2/NPCs/Enemies/Enemy.h"
+#include "MDVProject2/NPCs/Enemies/SkeletonWarrior.h"
 
 
 ALaser::ALaser() {
@@ -28,9 +30,21 @@ void ALaser::SetVelocity(const FVector& HitDirection) {
 	ProjectileMovementComponent->Velocity *= Statistics->Velocity;
 }
 
-void ALaser::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+void ALaser::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	UGameplayStatics::ApplyDamage(OtherActor, Statistics->BaseDamage, nullptr, this, UDamageType::StaticClass());
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Statistics->HitNiagaraSystem, SweepResult.Location,
-		FRotator::ZeroRotator, FVector(Statistics->HitScale), true);
+	
+	//TODO: Create a delegate for all AEnemy and send them the HitLocation to spawn a hit niagara effect exactly where the enemy was hit
+	/*
+	 UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Statistics->HitNiagaraSystem, SweepResult.Location,
+		Statistics->HitRotation, FVector(Statistics->HitScale), true);
+
+		AEnemy* Enemy = Cast<AEnemy>(OtherActor);
+    	
+    	UNiagaraFunctionLibrary::SpawnSystemAttached(Statistics->HitNiagaraSystem, Enemy->GetMesh(), "",
+    			FVector(0), FRotator(0), EAttachLocation::KeepRelativeOffset, false, true);
+	UE_LOG(LogTemp, Warning, TEXT("OtherActor: %s"), *OtherActor->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("SweepResult location: %s"), *SweepResult.Location.ToString());
+	*/
 }
 

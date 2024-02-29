@@ -14,7 +14,7 @@ ASpell::ASpell() {
 	
 	// Create components
 	CollisionSphere = CreateDefaultSubobject<USphereComponent>("CollisionSphere");
-	CollisionSphere->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
+	CollisionSphere->SetSphereRadius(1);
 	RootComponent = CollisionSphere;
 	
 	SpellEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SpellEffect"));

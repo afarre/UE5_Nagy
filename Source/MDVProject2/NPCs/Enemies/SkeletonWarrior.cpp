@@ -14,6 +14,7 @@ ASkeletonWarrior::ASkeletonWarrior() {
 	
 	HealthComponent->MaxHealth = HealthComponent->CurrentHealth = Settings->MaxHealth;
 	DeathNiagaraEffect = Settings->DeathNiagaraEffect;
+	TestEffect = Settings->TestEffect;
 }
 
 // Called when the game starts or when spawned
@@ -22,9 +23,6 @@ void ASkeletonWarrior::BeginPlay() {
 	
 }
 
-void ASkeletonWarrior::TriggerDeathNiagaraEffect() {
-	
-}
 
 // Called every frame
 void ASkeletonWarrior::Tick(float DeltaTime) {

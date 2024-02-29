@@ -4,7 +4,8 @@
 #include "Enemy.h"
 
 #include "NiagaraFunctionLibrary.h"
-#include "NiagaraComponent.h"
+#include "MDVProject2/Controller/MyAIController.h"
+#include "MDVProject2/Objects/VFX/Laser.h"
 
 // Sets default values
 AEnemy::AEnemy() {
@@ -14,12 +15,10 @@ AEnemy::AEnemy() {
 	EnemyStatisticsDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Script/Engine.DataTable'/Game/DataStructures/DT_EnemySettings.DT_EnemySettings'"));
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
 	Weapon->SetupAttachment(RootComponent);
-
-	/*DeathNiagaraEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DeathNiagaraEffect"));
-	DeathNiagaraEffectComponent->SetupAttachment(RootComponent);
-	DeathNiagaraEffectComponent->SetAsset(DeathNiagaraEffect);*/
 	
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+
+	AIControllerClass = AMyAIController::StaticClass();
 }
 
 // Called when the game starts or when spawned
@@ -40,6 +39,14 @@ float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AC
 	HealthComponent->CurrentHealth -= DamageAmount;
 	UE_LOG(LogTemp, Warning, TEXT("HealthComponent->CurrentHealth: %f"), HealthComponent->CurrentHealth)
 
+	/*
+	 *TODO: Use this on a delegate sent from the laser that provides the location of the hit
+	if (DamageCauser->GetClass() == ALaser::StaticClass()) {
+		UNiagaraFunctionLibrary::SpawnSystemAttached(TestEffect, GetMesh(), "",
+        	FVector(0), FRotator(0), EAttachLocation::KeepRelativeOffset, false, true);
+	}
+	*/
+	
 	if (HealthComponent->CurrentHealth <= 0) {
 		//DeathNiagaraEffectComponent->Activate();
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, DeathNiagaraEffect, GetActorLocation(), FRotator::ZeroRotator, FVector(1.3), true);

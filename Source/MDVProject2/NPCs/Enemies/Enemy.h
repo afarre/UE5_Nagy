@@ -30,13 +30,12 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	UHealthComponent* HealthComponent;
-
-	/*UPROPERTY(EditAnywhere)
-	UNiagaraComponent* DeathNiagaraEffectComponent;
-	*/
-
+	
 	UPROPERTY()
 	UNiagaraSystem* DeathNiagaraEffect;
+
+	UPROPERTY()
+	UNiagaraSystem* TestEffect;
 
 	UPROPERTY()
 	UDataTable* EnemyStatisticsDataTable;

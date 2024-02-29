@@ -21,7 +21,6 @@ APlasmaBall::APlasmaBall() {
 
 	// Time until it self destroys (not related to HP)
 	InitialLifeSpan = Statistics->LifeSpan;
-	
 }
 
 void APlasmaBall::SetVelocity(const FVector& HitDirection) {
@@ -36,7 +35,7 @@ void APlasmaBall::BeginPlay() {
 void APlasmaBall::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	UE_LOG(LogTemp, Warning, TEXT("OnOverlapBegin: %s"), *OtherActor->GetActorNameOrLabel())
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Statistics->HitNiagaraSystem, SweepResult.Location,
-		FRotator::ZeroRotator, FVector(Statistics->HitScale), true);
+		Statistics->HitRotation, FVector(Statistics->HitScale), true);
 	
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;

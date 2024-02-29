@@ -1,9 +1,9 @@
 #pragma once
 
-#include "CameraZoomDataAsset.generated.h"
+#include "CameraDataAsset.generated.h"
 
 UCLASS()
-class MDVPROJECT2_API UCameraZoomDataAsset : public UPrimaryDataAsset {
+class MDVPROJECT2_API UCameraDataAsset : public UPrimaryDataAsset {
 	GENERATED_BODY()
 	
 public:
@@ -18,4 +18,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MaxCameraZoom = 500.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TargetArmLength = 200;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float CameraLagSpeed = 3;
 };

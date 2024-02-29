@@ -11,8 +11,7 @@
 #include "MDVProject2/Utils/DataAssets/AnimationDataAsset.h"
 #include "MDVProject2/Utils/DataAssets/InputDataAsset.h"
 #include "MDVProject2/Utils/DataStructures.h"
-#include "MDVProject2/Utils/DataAssets/CameraZoomDataAsset.h"
-#include "MDVProject2/Utils/DataAssets/NiagaraDataAsset.h"
+#include "MDVProject2/Utils/DataAssets/CameraDataAsset.h"
 #include "Nagy.generated.h"
 
 UCLASS()
@@ -50,8 +49,6 @@ public:
 	// Trigger spells from AnimBlueprint
 	UFUNCTION(BlueprintCallable)
 	void TriggerSpell(UClass* Class);
-	
-	FHitResult CalculateTraceTrajectory();
 
 protected:
 	// Called when the game starts or when spawned
@@ -75,10 +72,7 @@ protected:
 	UInputDataAsset* InputDataAsset;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
-	UCameraZoomDataAsset* CameraDataAsset;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataAssets)
-	UNiagaraDataAsset* NiagaraDataAsset;
+	UCameraDataAsset* CameraDataAsset;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataTables)
 	UDataTable* MovementSettings;
@@ -105,23 +99,21 @@ private:
 	
 	void Attack(const FInputActionValue& Value);
 
-	void Block(const FInputActionValue& Value);
+	void Block();
 
-	void Dash(const FInputActionValue& Value);
+	void Dash();
 
-	void Interact(const FInputActionValue& Value);
+	void Interact();
 
 	void CameraZoom(const FInputActionValue& Value);
 
-	void Sprint(const FInputActionValue& Value);
+	void Sprint();
 
 	void Test(const FInputActionValue& Value);
 	
-	void ChangeWeapon(const FInputActionValue& Value);
-
-	void Spell1Triggered(const FInputActionValue& InputActionValue);
+	void ChangeWeapon();
 	
-	void Spell2Ongoing();
+	void Spell1();
 	
 	void Spell2();
 	
@@ -146,9 +138,7 @@ private:
 	void ModifyCharacterMovement(EMovementType MovementType) const;
 
 	void AddInputMappings(TArray<UInputAction*> InputActionArray);
-
-	bool MovementFirstChange;
-
+	
 	EMovementType CurrentMovementType;
 
 	TArray<FName> MovementSettingsArray;

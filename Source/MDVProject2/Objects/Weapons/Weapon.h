@@ -36,15 +36,14 @@ public:
 	bool IsPrimary;
 
 	FName WeaponName;
-
-	UFUNCTION()
-	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
+	void WeaponCollisionDelegate();
+	
+	UFUNCTION(BlueprintCallable)
+	void InitWeaponTraceHitTimer();
 
 	UFUNCTION(BlueprintCallable)
-	void EnableOverlap();
-
-	UFUNCTION(BlueprintCallable)
-	void DisableOverlap();
+	void EndWeaponTraceHitTimer();
 
 protected:
 	// Called when the game starts or when spawned
@@ -66,4 +65,11 @@ protected:
 	UDataTable* WeaponsDataTable;
 
 	TArray<FName> WeaponNamesArray;
+
+private:
+	FVector InitDamageCollisionBoxPos;
+	
+	FTimerHandle TimerHandle;
+
+	FCollisionQueryParams CollisionQueryParams;
 };

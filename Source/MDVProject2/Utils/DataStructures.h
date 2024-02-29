@@ -74,6 +74,9 @@ struct FEnemySettings : public FTableRowBase {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UNiagaraSystem* DeathNiagaraEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UNiagaraSystem* TestEffect;
 };
 
 USTRUCT(BlueprintType)
@@ -103,6 +106,9 @@ struct FSpellStatistics : public FTableRowBase {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int HitRadius;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FRotator HitRotation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int LifeSpan;

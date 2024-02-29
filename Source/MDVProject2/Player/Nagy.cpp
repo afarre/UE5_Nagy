@@ -6,7 +6,6 @@
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
 #include "NiagaraComponent.h"
-#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -24,15 +23,15 @@ ANagy::ANagy() {
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 	
 	InitComponents();
-	GetCapsuleComponent()->SetCollisionObjectType(ECC_GameTraceChannel1);
 }
 
 void ANagy::InitComponents() {
 	// Initialize the Camera Boom
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
-	CameraBoom->SetupAttachment(GetMesh(), "HeadSocket");
+	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->TargetArmLength = 200;
+	//CameraBoom->CameraLagSpeed = 30;
 
 	// Initialize the Camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -61,7 +60,13 @@ void ANagy::TriggerSpell(UClass* Class) {
 	FVector PlayerTraceStart = GetMesh()->GetSocketLocation("LeftHandSocket");
 	ASpell* Spell = GetWorld()->SpawnActor<ASpell>(Class, PlayerTraceStart, FollowCamera->GetComponentRotation(), ActorSpawnParameters);
 
-	FHitResult TraceHit = CalculateTraceTrajectory();
+	FHitResult TraceHit;
+	FVector TraceStart = FollowCamera->GetComponentLocation();
+	FVector TraceEnd = FollowCamera->GetComponentLocation() + FollowCamera->GetForwardVector() * 10000.0f;
+	FCollisionQueryParams CollisionQueryParams;
+	CollisionQueryParams.AddIgnoredActor(this);
+	
+	GetWorld()->LineTraceSingleByChannel(TraceHit, TraceStart, TraceEnd, ECC_Visibility, CollisionQueryParams);
 	if (Spell) {
 		if (TraceHit.bBlockingHit && IsValid(TraceHit.GetActor())) {
 			FVector TraceHitLocation = FVector(TraceHit.ImpactPoint.X, TraceHit.ImpactPoint.Y, TraceHit.ImpactPoint.Z);
@@ -72,17 +77,6 @@ void ANagy::TriggerSpell(UClass* Class) {
 			Spell->SetVelocity(FollowCamera->GetForwardVector());
 		}
 	}
-}
-
-FHitResult ANagy::CalculateTraceTrajectory() {
-	FHitResult TraceHit;
-	FVector TraceStart = FollowCamera->GetComponentLocation();
-	FVector TraceEnd = FollowCamera->GetComponentLocation() + FollowCamera->GetForwardVector() * 10000.0f;
-	FCollisionQueryParams CollisionQueryParams;
-	CollisionQueryParams.AddIgnoredActor(this);
-	
-	GetWorld()->LineTraceSingleByChannel(TraceHit, TraceStart, TraceEnd, ECC_Visibility, CollisionQueryParams);
-	return TraceHit;
 }
 
 // Called when the game starts or when spawned
@@ -107,7 +101,6 @@ void ANagy::BeginPlay() {
 	AbilitiesArray = AbilitiesSettings->GetRowNames();
 	AnimInstance = GetMesh()->GetAnimInstance();
 	TrailNiagaraEffect->Deactivate();
-	MovementFirstChange = false;
 	CurrentMovementType = Walking;
 }
 
@@ -131,8 +124,7 @@ void ANagy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
 		EnhancedInputComponent->BindAction(InputDataAsset->SprintInputAction, ETriggerEvent::Triggered, this, &ANagy::Sprint);
 		EnhancedInputComponent->BindAction(InputDataAsset->Test, ETriggerEvent::Triggered, this, &ANagy::Test);
 		EnhancedInputComponent->BindAction(InputDataAsset->ChangeWeapon, ETriggerEvent::Triggered, this, &ANagy::ChangeWeapon);
-		EnhancedInputComponent->BindAction(InputDataAsset->Spell1, ETriggerEvent::Triggered, this, &ANagy::Spell1Triggered);
-		EnhancedInputComponent->BindAction(InputDataAsset->Spell1, ETriggerEvent::Ongoing, this, &ANagy::Spell2Ongoing);
+		EnhancedInputComponent->BindAction(InputDataAsset->Spell1, ETriggerEvent::Triggered, this, &ANagy::Spell1);
 		EnhancedInputComponent->BindAction(InputDataAsset->Spell2, ETriggerEvent::Triggered, this, &ANagy::Spell2);
 	}
 }
@@ -181,12 +173,11 @@ void ANagy::Attack(const FInputActionValue& Value) {
 	}
 }
 
-void ANagy::Block(const FInputActionValue& Value) {
-	const bool Block = Value.Get<bool>();
-	UE_LOG(LogTemp, Warning, TEXT("Block clicked: %d"), Block)
+void ANagy::Block() {
+	UE_LOG(LogTemp, Warning, TEXT("Block clicked"))
 }
 
-void ANagy::Dash(const FInputActionValue& Value) {
+void ANagy::Dash() {
 	// TODO: Deactivate all inputs other than camera and WASD (to avoid interacting mid dash for example). Prerequisite: learn how to add input modifiers for the WASD input
 	if (GetCharacterMovement()->MaxWalkSpeed >= MovementSettings->FindRow<FMovementSetting>(MovementSettingsArray[Sprinting], "", true)->MaxWalkSpeed) {
 		TriggerNiagaraDashEffect();
@@ -199,7 +190,7 @@ void ANagy::Dash(const FInputActionValue& Value) {
 	}
 }
 
-void ANagy::Interact(const FInputActionValue& Value) {
+void ANagy::Interact() {
 	TArray<AActor*> OverlappingActors;
 	GetOverlappingActors(OverlappingActors, UInteractiveInterface::StaticClass());
 	if (!OverlappingActors.IsEmpty()) {
@@ -224,17 +215,17 @@ void ANagy::CameraZoom(const FInputActionValue& Value) {
     }
 }
 
-void ANagy::Sprint(const FInputActionValue& Value) {
-	if (Value.Get<bool>() && !MovementFirstChange) {
+void ANagy::Sprint() {
+	if (CurrentMovementType != Sprinting) {
+		//CameraBoom->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "HeadSocket");
+		// TODO: Attaching to HeadSocket when running has issues. Implement a camera shake instead.
 		TrailNiagaraEffect->Activate();
 		ModifyCharacterMovement(Sprinting);
-		MovementFirstChange = true;
 		CurrentMovementType = Sprinting;
-	} 
-	if (!Value.Get<bool>()) {
+	} else {
+		//CameraBoom->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 		TrailNiagaraEffect->Deactivate();
 		ModifyCharacterMovement(Walking);
-		MovementFirstChange = false;
 		CurrentMovementType = Walking;
 	}
 }
@@ -243,33 +234,27 @@ void ANagy::Test(const FInputActionValue& Value) {
 	UE_LOG(LogTemp, Warning, TEXT("Test key pressed"))
 }
 
-void ANagy::ChangeWeapon(const FInputActionValue& Value) {
-	if (Value.Get<bool>()) {
-		for (FKey Key : Subsystem->QueryKeysMappedToAction(InputDataAsset->ChangeWeapon)) {
-			if (PlayerController->IsInputKeyDown(Key)) {
-				// Player wants to equip primary weapon
-				if (Key == EKeys::One && PrimaryWeapon.IsValid() && PrimaryWeapon->IsEquipped == false) {
-					AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
-					// Create delegate to notify end of montage
-					MontageEndedDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate, false);
-					GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
-				} else if (Key == EKeys::Two && SecondaryWeapon.IsValid() && SecondaryWeapon->IsEquipped == false) {
-					AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
-					// Create delegate to notify end of montage
-					MontageEndedDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate, false);
-					GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
-				}
+void ANagy::ChangeWeapon() {
+	for (FKey Key : Subsystem->QueryKeysMappedToAction(InputDataAsset->ChangeWeapon)) {
+		if (PlayerController->IsInputKeyDown(Key)) {
+			// Player wants to equip primary weapon
+			if (Key == EKeys::One && PrimaryWeapon.IsValid() && PrimaryWeapon->IsEquipped == false) {
+				AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
+				// Create delegate to notify end of montage
+				MontageEndedDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate, false);
+				GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
+			} else if (Key == EKeys::Two && SecondaryWeapon.IsValid() && SecondaryWeapon->IsEquipped == false) {
+				AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
+				// Create delegate to notify end of montage
+				MontageEndedDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate, false);
+				GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
 			}
 		}
 	}
 }
 
-void ANagy::Spell1Triggered(const FInputActionValue& InputActionValue) {
+void ANagy::Spell1() {
 	AnimInstance->Montage_Play(AnimationDataAsset->Spell1, 1);
-}
-
-void ANagy::Spell2Ongoing() {
-	//UE_LOG(LogTemp, Warning, TEXT("Spell ongoing"))
 }
 
 void ANagy::Spell2() {

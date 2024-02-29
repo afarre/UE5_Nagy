@@ -3,21 +3,39 @@
 
 #include "Weapon.h"
 
+#include "KismetTraceUtils.h"
+#include "Kismet/GameplayStatics.h"
+
 // Sets default values
 AWeapon::AWeapon() {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-    /*const FSoftObjectPath WeaponDataTablePath = FSoftObjectPath(TEXT("/Script/Engine.DataTable'/Game/DataStructures/DT_WeaponStatistics.DT_WeaponStatistics'"));
-	WeaponsDataTable = Cast<UDataTable>(WeaponDataTablePath.ResolveObject());*/
+	
 	WeaponsDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Script/Engine.DataTable'/Game/DataStructures/DT_WeaponStatistics.DT_WeaponStatistics'"));
 	WeaponNamesArray = WeaponsDataTable->GetRowNames();
 	
 	InitComponents();
 }
 
-void AWeapon::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	UE_LOG(LogTemp, Warning, TEXT("Overlap!"))
+void AWeapon::WeaponCollisionDelegate() {
+	TArray<FHitResult> HitResults;
+	
+	GetWorld()->LineTraceMultiByProfile(HitResults, InitDamageCollisionBoxPos, DamageCollisionBox->GetComponentLocation(),
+		FName("Pawn"), CollisionQueryParams);
+	
+	DrawDebugLine(GetWorld(), InitDamageCollisionBoxPos, DamageCollisionBox->GetComponentLocation(),
+		FColor::Blue, false, 10.0f, 0, 1.0f);
+	
+	DrawDebugSweptBox(GetWorld(), InitDamageCollisionBoxPos, DamageCollisionBox->GetComponentLocation(),
+		DamageCollisionBox->GetComponentRotation(), DamageCollisionBox->GetScaledBoxExtent()/2, FColor::Emerald, false, 10);
+	
+	for (FHitResult HitResult : HitResults) {
+		UE_LOG(LogTemp, Warning, TEXT("Registered this hit: %s"), *HitResult.GetActor()->GetName())
+		UGameplayStatics::ApplyDamage(HitResult.GetActor(), 40, nullptr, this, UDamageType::StaticClass());
+		CollisionQueryParams.AddIgnoredActor(HitResult.GetActor());
+	}
+	InitDamageCollisionBoxPos = DamageCollisionBox->GetComponentLocation();
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AWeapon::WeaponCollisionDelegate, 1.0f, false, .01);
 }
 
 // Called when the game starts or when spawned
@@ -25,12 +43,15 @@ void AWeapon::BeginPlay() {
 	Super::BeginPlay();
 }
 
-void AWeapon::EnableOverlap() {
-	DamageCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnOverlapBegin);
+void AWeapon::InitWeaponTraceHitTimer() {
+	InitDamageCollisionBoxPos = DamageCollisionBox->GetComponentLocation();
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AWeapon::WeaponCollisionDelegate, 0.01, false, 0);
+	CollisionQueryParams.AddIgnoredActor(this);
 }
 
-void AWeapon::DisableOverlap() {
-	DamageCollisionBox->OnComponentBeginOverlap.Clear();
+void AWeapon::EndWeaponTraceHitTimer() {
+	GetWorldTimerManager().ClearTimer(TimerHandle);
+	CollisionQueryParams.ClearIgnoredActors();
 }
 
 // Called every frame

@@ -31,8 +31,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UNiagaraSystem* NiagaraSystem;
 	
+	/*
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UArrowComponent* ArrowComponent;
+	UArrowComponent* ArrowComponent;*/
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UDataTable* SpellStatistics;

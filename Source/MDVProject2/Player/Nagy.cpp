@@ -7,7 +7,6 @@
 #include "InputMappingContext.h"
 #include "NiagaraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MDVProject2/Objects/VFX/PlasmaBall.h"
 #include "MDVProject2/Objects/Weapons/Weapon.h"
@@ -95,7 +94,6 @@ void ANagy::BeginPlay() {
 		}
 	}
 
-	MyReferenceManager = Cast<AMyReferenceManager>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyReferenceManager::StaticClass()));
 	CameraBoom->AddRelativeLocation(FVector(0, 0, CameraDataAsset->ZOffset));
 	MovementSettingsArray = MovementSettings->GetRowNames();
 	AbilitiesArray = AbilitiesSettings->GetRowNames();
@@ -242,12 +240,12 @@ void ANagy::ChangeWeapon() {
 				AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
 				// Create delegate to notify end of montage
 				MontageEndedDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate, false);
-				GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
+				AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
 			} else if (Key == EKeys::Two && SecondaryWeapon.IsValid() && SecondaryWeapon->IsEquipped == false) {
 				AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
 				// Create delegate to notify end of montage
 				MontageEndedDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate, false);
-				GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
+				AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
 			}
 		}
 	}
@@ -386,7 +384,7 @@ void ANagy::HandleWeaponInteract(const AWeapon* Weapon) {
 			AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
 			// Create delegate to notify end of montage
 			MontageEndedDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate, true);
-			GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
+			AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
 		} else {
 			PickUpWeapon();
 		}
@@ -395,7 +393,7 @@ void ANagy::HandleWeaponInteract(const AWeapon* Weapon) {
 			AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
 			// Create delegate to notify end of montage
 			MontageEndedDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate, true);
-			GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
+			AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
 		} else {
 			PickUpWeapon();
 		}
@@ -443,5 +441,5 @@ void ANagy::PickUpWeapon() {
 
 	// Create delegate to notify end of montage
 	MontageEndedDelegate.BindUObject(this, &ANagy::InteractMontageEndDelegate);
-	GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->InteractMontage);
+	AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->InteractMontage);
 }

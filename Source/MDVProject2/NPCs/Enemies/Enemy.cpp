@@ -3,9 +3,7 @@
 
 #include "Enemy.h"
 
-#include "NiagaraFunctionLibrary.h"
 #include "MDVProject2/Controller/MyAIController.h"
-#include "MDVProject2/Objects/VFX/Laser.h"
 
 // Sets default values
 AEnemy::AEnemy() {
@@ -17,13 +15,19 @@ AEnemy::AEnemy() {
 	Weapon->SetupAttachment(RootComponent);
 	
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
-
+	HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarComponent"));
+	HealthBarWidgetComponent->SetupAttachment(RootComponent);
+	
+	static ConstructorHelpers::FClassFinder<UUserWidget> MenuWidgetClassFinder(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Blueprints/Widgets/BP_EnemyHealthBar.BP_EnemyHealthBar'"));
+	HealthBarWidgetComponent->SetWidgetClass(MenuWidgetClassFinder.Class);
+	
 	AIControllerClass = AMyAIController::StaticClass();
 }
 
 // Called when the game starts or when spawned
 void AEnemy::BeginPlay() {
 	Super::BeginPlay();
+	HealthBarWidgetComponent->InitWidget();
 }
 
 // Called every frame
@@ -31,27 +35,11 @@ void AEnemy::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 }
 
+//Unused (for now)
 float AEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) {
-	//TODO: Improve the code. Embed death niagara effect in the enemy? Handle health removal & death from the HealthComponent?
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	UE_LOG(LogTemp, Warning, TEXT("Taking damage in enemy: %s"), *GetActorLabel())
-	//HealthComponent->TakeDamage(DamageAmount);
 	HealthComponent->CurrentHealth -= DamageAmount;
-	UE_LOG(LogTemp, Warning, TEXT("HealthComponent->CurrentHealth: %f"), HealthComponent->CurrentHealth)
-
-	/*
-	 *TODO: Use this on a delegate sent from the laser that provides the location of the hit
-	if (DamageCauser->GetClass() == ALaser::StaticClass()) {
-		UNiagaraFunctionLibrary::SpawnSystemAttached(TestEffect, GetMesh(), "",
-        	FVector(0), FRotator(0), EAttachLocation::KeepRelativeOffset, false, true);
-	}
-	*/
 	
-	if (HealthComponent->CurrentHealth <= 0) {
-		//DeathNiagaraEffectComponent->Activate();
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, DeathNiagaraEffect, GetActorLocation(), FRotator::ZeroRotator, FVector(1.3), true);
-		Destroy();
-	}
 	return 0;
 }
 

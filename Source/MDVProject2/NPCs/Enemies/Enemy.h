@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "NiagaraComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GameFramework/Character.h"
 #include "MDVProject2/Utils/Components/HealthComponent.h"
 #include "Enemy.generated.h"
@@ -30,15 +30,13 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	UHealthComponent* HealthComponent;
-	
-	UPROPERTY()
-	UNiagaraSystem* DeathNiagaraEffect;
 
-	UPROPERTY()
-	UNiagaraSystem* TestEffect;
-
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = DataTables)
 	UDataTable* EnemyStatisticsDataTable;
 
+	UPROPERTY(EditAnywhere)
+	UWidgetComponent* HealthBarWidgetComponent;
+
+	// Other
 	TArray<FName> EnemyNamesArray;
 };

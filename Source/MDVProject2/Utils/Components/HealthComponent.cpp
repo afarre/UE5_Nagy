@@ -28,14 +28,3 @@ void UHealthComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 	// ...
 }
-
-void UHealthComponent::TakeDamage(float DamageAmount) {
-	CurrentHealth -= DamageAmount;
-	UE_LOG(LogTemp, Warning, TEXT("HealthComponent->MaxHealth: %f"), MaxHealth)
-	UE_LOG(LogTemp, Warning, TEXT("HealthComponent->CurrentHealth: %f"), CurrentHealth)
-
-	if (CurrentHealth <= 0) {
-		//DeathNiagaraEffectComponent->SetAsset(DeathNiagaraEffect);
-	}
-}
-

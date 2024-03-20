@@ -76,7 +76,10 @@ struct FEnemySettings : public FTableRowBase {
 	UNiagaraSystem* DeathNiagaraEffect;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UNiagaraSystem* TestEffect;
+	TArray<UAnimMontage*> DeathSequences;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UAnimMontage* TakeDamage;
 };
 
 USTRUCT(BlueprintType)

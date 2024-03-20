@@ -7,7 +7,7 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "MDVProject2/Controller/MyReferenceManager.h"
+#include "MDVProject2/Objects/Weapons/Weapon.h"
 #include "MDVProject2/Utils/DataAssets/AnimationDataAsset.h"
 #include "MDVProject2/Utils/DataAssets/InputDataAsset.h"
 #include "MDVProject2/Utils/DataStructures.h"
@@ -84,9 +84,6 @@ private:
 	UPROPERTY()
 	APlayerController* PlayerController;
 
-	UPROPERTY()
-	AMyReferenceManager* MyReferenceManager;
-
 	void InitComponents();
 	
 	// Input Action implementation functions
@@ -130,7 +127,7 @@ private:
 
 	void OverShoulderDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted, bool Pickup);
 
-	// Montage
+	// Anim
 	UPROPERTY()
 	UAnimInstance* AnimInstance;
 	

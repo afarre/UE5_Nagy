@@ -9,6 +9,6 @@ void AMyHUD::BeginPlay() {
 	CombatHUD = CreateWidget<UCombatHUD>(GetWorld(), UCombatHUD::StaticClass());
 	
 	if (CombatHUD) {
-		CombatHUD->AddToViewport();
+		//CombatHUD->AddToViewport();
 	}
 }

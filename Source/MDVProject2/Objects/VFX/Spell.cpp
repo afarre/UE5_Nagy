@@ -20,9 +20,9 @@ ASpell::ASpell() {
 	SpellEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SpellEffect"));
 	SpellEffect->SetupAttachment(CollisionSphere);
 	
-	ArrowComponent = CreateDefaultSubobject<UArrowComponent>("ArrowComponent");
+	/*ArrowComponent = CreateDefaultSubobject<UArrowComponent>("ArrowComponent");
 	ArrowComponent->SetHiddenInGame(false);
-	ArrowComponent->SetupAttachment(RootComponent);
+	ArrowComponent->SetupAttachment(RootComponent);*/
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(FName("ProjectileMovementComponent"));
 	ProjectileMovementComponent->bAutoActivate = true;

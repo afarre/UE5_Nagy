@@ -4,21 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "MDVProject2/UI/Widgets/CombatHUD.h"
-#include "MyHUD.generated.h"
+#include "MDVProject2/UI/Widgets/CppOnlyWidget.h"
+#include "MDVProject2/UI/Widgets/MainMenu.h"
+#include "GameHUD.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class MDVPROJECT2_API AMyHUD : public AHUD {
+class MDVPROJECT2_API AGameHUD : public AHUD {
 	GENERATED_BODY()
 
 public:
+	AGameHUD();
+	
 	virtual void BeginPlay() override;
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Widget")
-	UCombatHUD* CombatHUD;
+	UCppOnlyWidget* CppOnlyWidget;
 
 };

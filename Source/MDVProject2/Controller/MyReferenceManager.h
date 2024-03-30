@@ -9,7 +9,7 @@
 class AWeapon;
 class ANagy;
 class AMyController;
-class AMyHUD;
+class AGameHUD;
 
 UCLASS()
 class MDVPROJECT2_API AMyReferenceManager : public AActor
@@ -30,7 +30,7 @@ public:
 	AMyController* MyController;
 
 	UPROPERTY()
-	AMyHUD* MyHUD;
+	AGameHUD* MyHUD;
 
 	UPROPERTY()
 	AWeapon* Weapon;

@@ -7,7 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MDVProject2/Objects/Weapons/Weapon.h"
 #include "MDVProject2/Player/Nagy.h"
-#include "MDVProject2/UI/HUD/MyHUD.h"
+#include "MDVProject2/UI/HUD/GameHUD.h"
 
 // Sets default values
 AMyReferenceManager::AMyReferenceManager() {
@@ -24,7 +24,7 @@ void AMyReferenceManager::BeginPlay() {
 
 	MyController = Cast<AMyController>(UGameplayStatics::GetActorOfClass(GetWorld(), AMyController::StaticClass()));
 	
-	MyHUD = Cast<AMyHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
+	MyHUD = Cast<AGameHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
 
 	Weapon = Cast<AWeapon>(UGameplayStatics::GetActorOfClass(GetWorld(), AWeapon::StaticClass()));
 }

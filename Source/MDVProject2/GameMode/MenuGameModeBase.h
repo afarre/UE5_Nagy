@@ -4,15 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "MyGameModeBase.generated.h"
+#include "MenuGameModeBase.generated.h"
 
 /**
  * 
  */
-UCLASS(MinimalAPI)
-class AMyGameModeBase : public AGameModeBase {
+UCLASS()
+class MDVPROJECT2_API AMenuGameModeBase : public AGameModeBase
+{
 	GENERATED_BODY()
 
-public:
-	AMyGameModeBase();
+	AMenuGameModeBase();
+	
 };

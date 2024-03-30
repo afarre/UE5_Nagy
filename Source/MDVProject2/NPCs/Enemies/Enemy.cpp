@@ -3,6 +3,8 @@
 
 #include "Enemy.h"
 
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "MDVProject2/Controller/MyAIController.h"
 
 // Sets default values
@@ -18,7 +20,7 @@ AEnemy::AEnemy() {
 	HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarComponent"));
 	HealthBarWidgetComponent->SetupAttachment(RootComponent);
 	
-	static ConstructorHelpers::FClassFinder<UUserWidget> MenuWidgetClassFinder(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Blueprints/Widgets/BP_EnemyHealthBar.BP_EnemyHealthBar'"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> MenuWidgetClassFinder(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Blueprints/CodeBlueprints/UI/WB_EnemyHealthBar.WB_EnemyHealthBar_C'"));
 	HealthBarWidgetComponent->SetWidgetClass(MenuWidgetClassFinder.Class);
 	
 	AIControllerClass = AMyAIController::StaticClass();
@@ -33,6 +35,8 @@ void AEnemy::BeginPlay() {
 // Called every frame
 void AEnemy::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
+	HealthBarWidgetComponent->SetWorldRotation(UKismetMathLibrary::FindLookAtRotation(HealthBarWidgetComponent->GetComponentLocation(),
+		UGameplayStatics::GetPlayerCameraManager(GetWorld(),0)->GetCameraLocation()));
 }
 
 //Unused (for now)

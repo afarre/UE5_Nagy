@@ -12,15 +12,15 @@
 #include "MDVProject2/Utils/DataAssets/InputDataAsset.h"
 #include "MDVProject2/Utils/DataStructures.h"
 #include "MDVProject2/Utils/DataAssets/CameraDataAsset.h"
-#include "Nagy.generated.h"
+#include "TestCharacter.generated.h"
 
 UCLASS()
-class MDVPROJECT2_API ANagy : public ACharacter {
+class MDVPROJECT2_API ATestCharacter : public ACharacter {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
-	ANagy();
+	ATestCharacter();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

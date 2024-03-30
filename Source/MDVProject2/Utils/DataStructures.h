@@ -63,6 +63,11 @@ struct FAbilitiesSettings : public FTableRowBase {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float Duration;
+
+	FAbilitiesSettings() {
+		Cooldown = 5;
+		Duration = 0.1;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -80,6 +85,13 @@ struct FEnemySettings : public FTableRowBase {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UAnimMontage* TakeDamage;
+
+	FEnemySettings() {
+		MaxHealth = 100;
+		DeathNiagaraEffect = nullptr;
+		DeathSequences = {};
+		TakeDamage = nullptr;
+	}
 };
 
 USTRUCT(BlueprintType)
@@ -115,6 +127,19 @@ struct FSpellStatistics : public FTableRowBase {
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int LifeSpan;
+
+	FSpellStatistics() {
+		BaseNiagaraSystem = nullptr;
+		BaseScale = 1;
+		Rotation = FRotator(1);
+		Velocity = 1000;
+		BaseDamage = 50;
+		HitNiagaraSystem = nullptr;
+		HitScale = 1;
+		HitRadius = 1;
+		HitRotation = FRotator(1);
+		LifeSpan = 1;
+	}
 };
 
 /* Enums */

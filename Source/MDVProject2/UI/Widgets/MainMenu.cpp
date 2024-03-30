@@ -3,8 +3,12 @@
 
 #include "MainMenu.h"
 
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
+
 void UMainMenu::NewGamePressed() const {
-	UE_LOG(LogTemp, Warning, TEXT("NewGamePressed"))
+	//TODO: Remove level name hardcode
+	UGameplayStatics::OpenLevel(UGameplayStatics::GetGameInstance(this), FName(TEXT("Project2_Playable")));
 }
 
 void UMainMenu::LoadGamePressed() const {
@@ -16,5 +20,5 @@ void UMainMenu::SettingsPressed() const {
 }
 
 void UMainMenu::ExitPressed() const {
-	UE_LOG(LogTemp, Warning, TEXT("ExitPressed"))
+	UKismetSystemLibrary::QuitGame(GetWorld(), GetWorld()->GetFirstPlayerController(), EQuitPreference::Type::Quit,false);
 }

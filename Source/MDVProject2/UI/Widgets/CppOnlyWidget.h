@@ -6,18 +6,18 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
 #include "Components/CanvasPanel.h"
-#include "CombatHUD.generated.h"
+#include "CppOnlyWidget.generated.h"
 
 class UTextBlock;
 /**
  * 
  */
 UCLASS()
-class MDVPROJECT2_API UCombatHUD : public UUserWidget {
+class MDVPROJECT2_API UCppOnlyWidget : public UUserWidget {
 	GENERATED_BODY()
 
 public:
-	UCombatHUD(const FObjectInitializer& ObjectInitializer);
+	UCppOnlyWidget(const FObjectInitializer& ObjectInitializer);
 	
 	virtual void NativeConstruct() override;
 

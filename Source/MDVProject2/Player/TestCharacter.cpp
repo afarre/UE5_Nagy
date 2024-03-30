@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Nagy.h"
+#include "TestCharacter.h"
+
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
@@ -14,7 +15,7 @@
 #include "MDVProject2/Utils/Interfaces/InteractiveObject.h"
 
 // Sets default values
-ANagy::ANagy() {
+ATestCharacter::ATestCharacter() {
  	// Set this character to call Tick() every frame. You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -24,7 +25,7 @@ ANagy::ANagy() {
 	InitComponents();
 }
 
-void ANagy::InitComponents() {
+void ATestCharacter::InitComponents() {
 	// Initialize the Camera Boom
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
 	CameraBoom->SetupAttachment(RootComponent);
@@ -52,7 +53,7 @@ void ANagy::InitComponents() {
 	TrailNiagaraEffect->SetAutoActivate(false);
 }
 
-void ANagy::TriggerSpell(UClass* Class) {
+void ATestCharacter::TriggerSpell(UClass* Class) {
 	FActorSpawnParameters ActorSpawnParameters;
 	ActorSpawnParameters.Owner = this;
 
@@ -79,7 +80,7 @@ void ANagy::TriggerSpell(UClass* Class) {
 }
 
 // Called when the game starts or when spawned
-void ANagy::BeginPlay() {
+void ATestCharacter::BeginPlay() {
 	Super::BeginPlay();
 	
 	// Get the player controller
@@ -103,33 +104,33 @@ void ANagy::BeginPlay() {
 }
 
 // Called every frame
-void ANagy::Tick(float DeltaTime) {
+void ATestCharacter::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 }
 
 // Called to bind functionality to input
-void ANagy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
+void ATestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		EnhancedInputComponent->BindAction(InputDataAsset->MoveInputAction, ETriggerEvent::Triggered, this, &ANagy::Move);
-		EnhancedInputComponent->BindAction(InputDataAsset->LookInputAction, ETriggerEvent::Triggered, this, &ANagy::Look);
-		EnhancedInputComponent->BindAction(InputDataAsset->AttackInputAction, ETriggerEvent::Triggered, this, &ANagy::Attack);
-		EnhancedInputComponent->BindAction(InputDataAsset->BlockInputAction, ETriggerEvent::Triggered, this, &ANagy::Block);
-		EnhancedInputComponent->BindAction(InputDataAsset->DashInputAction, ETriggerEvent::Triggered, this, &ANagy::Dash);
-		EnhancedInputComponent->BindAction(InputDataAsset->InteractInputAction, ETriggerEvent::Triggered, this, &ANagy::Interact);
-		EnhancedInputComponent->BindAction(InputDataAsset->CameraZoomInputAction, ETriggerEvent::Triggered, this, &ANagy::CameraZoom);
-		EnhancedInputComponent->BindAction(InputDataAsset->SprintInputAction, ETriggerEvent::Triggered, this, &ANagy::Sprint);
-		EnhancedInputComponent->BindAction(InputDataAsset->Test, ETriggerEvent::Triggered, this, &ANagy::Test);
-		EnhancedInputComponent->BindAction(InputDataAsset->ChangeWeapon, ETriggerEvent::Triggered, this, &ANagy::ChangeWeapon);
-		EnhancedInputComponent->BindAction(InputDataAsset->Spell1, ETriggerEvent::Triggered, this, &ANagy::Spell1);
-		EnhancedInputComponent->BindAction(InputDataAsset->Spell2, ETriggerEvent::Triggered, this, &ANagy::Spell2);
+		EnhancedInputComponent->BindAction(InputDataAsset->MoveInputAction, ETriggerEvent::Triggered, this, &ATestCharacter::Move);
+		EnhancedInputComponent->BindAction(InputDataAsset->LookInputAction, ETriggerEvent::Triggered, this, &ATestCharacter::Look);
+		EnhancedInputComponent->BindAction(InputDataAsset->AttackInputAction, ETriggerEvent::Triggered, this, &ATestCharacter::Attack);
+		EnhancedInputComponent->BindAction(InputDataAsset->BlockInputAction, ETriggerEvent::Triggered, this, &ATestCharacter::Block);
+		EnhancedInputComponent->BindAction(InputDataAsset->DashInputAction, ETriggerEvent::Triggered, this, &ATestCharacter::Dash);
+		EnhancedInputComponent->BindAction(InputDataAsset->InteractInputAction, ETriggerEvent::Triggered, this, &ATestCharacter::Interact);
+		EnhancedInputComponent->BindAction(InputDataAsset->CameraZoomInputAction, ETriggerEvent::Triggered, this, &ATestCharacter::CameraZoom);
+		EnhancedInputComponent->BindAction(InputDataAsset->SprintInputAction, ETriggerEvent::Triggered, this, &ATestCharacter::Sprint);
+		EnhancedInputComponent->BindAction(InputDataAsset->Test, ETriggerEvent::Triggered, this, &ATestCharacter::Test);
+		EnhancedInputComponent->BindAction(InputDataAsset->ChangeWeapon, ETriggerEvent::Triggered, this, &ATestCharacter::ChangeWeapon);
+		EnhancedInputComponent->BindAction(InputDataAsset->Spell1, ETriggerEvent::Triggered, this, &ATestCharacter::Spell1);
+		EnhancedInputComponent->BindAction(InputDataAsset->Spell2, ETriggerEvent::Triggered, this, &ATestCharacter::Spell2);
 	}
 }
 
 /* Input Action implementation functions */
 
-void ANagy::Move(const FInputActionValue& Value) {
+void ATestCharacter::Move(const FInputActionValue& Value) {
 	// Get the value of our movement, which can be a bool, a float, a FVector2d or FVector (3D)
 	const FVector2d DirectionValue = Value.Get<FVector2d>();
 	if (GetController()) {
@@ -148,7 +149,7 @@ void ANagy::Move(const FInputActionValue& Value) {
 	}
 }
 
-void ANagy::Look(const FInputActionValue& Value) {
+void ATestCharacter::Look(const FInputActionValue& Value) {
 	const FVector2d LookAxisValue = Value.Get<FVector2d>();
 	if (GetController()) {
 		// Clamp camera Y axis
@@ -161,7 +162,7 @@ void ANagy::Look(const FInputActionValue& Value) {
 	}
 }
 
-void ANagy::Attack(const FInputActionValue& Value) {
+void ATestCharacter::Attack(const FInputActionValue& Value) {
 	const bool Attack = Value.Get<bool>();
 	UE_LOG(LogTemp, Warning, TEXT("Attack clicked %d: "), Attack)
 	if (PrimaryWeapon.IsValid() && PrimaryWeapon->IsEquipped) {
@@ -171,11 +172,11 @@ void ANagy::Attack(const FInputActionValue& Value) {
 	}
 }
 
-void ANagy::Block() {
+void ATestCharacter::Block() {
 	UE_LOG(LogTemp, Warning, TEXT("Block clicked"))
 }
 
-void ANagy::Dash() {
+void ATestCharacter::Dash() {
 	// TODO: Deactivate all inputs other than camera and WASD (to avoid interacting mid dash for example). Prerequisite: learn how to add input modifiers for the WASD input
 	if (GetCharacterMovement()->MaxWalkSpeed >= MovementSettings->FindRow<FMovementSetting>(MovementSettingsArray[Sprinting], "", true)->MaxWalkSpeed) {
 		TriggerNiagaraDashEffect();
@@ -184,11 +185,11 @@ void ANagy::Dash() {
 
 		const FAbilitiesSettings* AbilitySettings = AbilitiesSettings->FindRow<FAbilitiesSettings>(AbilitiesArray[EAbilities::Dash], "", true);
 		FTimerHandle TimerHandle;
-		GetWorldTimerManager().SetTimer(TimerHandle, this, &ANagy::DashAbilityTimerDelegate, 1.0f, false, AbilitySettings->Duration);
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ATestCharacter::DashAbilityTimerDelegate, 1.0f, false, AbilitySettings->Duration);
 	}
 }
 
-void ANagy::Interact() {
+void ATestCharacter::Interact() {
 	TArray<AActor*> OverlappingActors;
 	GetOverlappingActors(OverlappingActors, UInteractiveInterface::StaticClass());
 	if (!OverlappingActors.IsEmpty()) {
@@ -199,7 +200,7 @@ void ANagy::Interact() {
 	}
 }
 
-void ANagy::CameraZoom(const FInputActionValue& Value) {
+void ATestCharacter::CameraZoom(const FInputActionValue& Value) {
 	const FVector DirectionValue = Value.Get<FVector>();
     if (GetController()) {
     	if (DirectionValue.X != 0) {
@@ -213,7 +214,7 @@ void ANagy::CameraZoom(const FInputActionValue& Value) {
     }
 }
 
-void ANagy::Sprint() {
+void ATestCharacter::Sprint() {
 	if (CurrentMovementType != Sprinting) {
 		//CameraBoom->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "HeadSocket");
 		// TODO: Attaching to HeadSocket when running has issues. Implement a camera shake instead.
@@ -228,40 +229,40 @@ void ANagy::Sprint() {
 	}
 }
 
-void ANagy::Test(const FInputActionValue& Value) {
+void ATestCharacter::Test(const FInputActionValue& Value) {
 	UE_LOG(LogTemp, Warning, TEXT("Test key pressed"))
 }
 
-void ANagy::ChangeWeapon() {
+void ATestCharacter::ChangeWeapon() {
 	for (FKey Key : Subsystem->QueryKeysMappedToAction(InputDataAsset->ChangeWeapon)) {
 		if (PlayerController->IsInputKeyDown(Key)) {
 			// Player wants to equip primary weapon
 			if (Key == EKeys::One && PrimaryWeapon.IsValid() && PrimaryWeapon->IsEquipped == false) {
 				AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
 				// Create delegate to notify end of montage
-				MontageEndedDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate, false);
+				MontageEndedDelegate.BindUObject(this, &ATestCharacter::UnderArmDisarmEndDelegate, false);
 				AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
 			} else if (Key == EKeys::Two && SecondaryWeapon.IsValid() && SecondaryWeapon->IsEquipped == false) {
 				AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
 				// Create delegate to notify end of montage
-				MontageEndedDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate, false);
+				MontageEndedDelegate.BindUObject(this, &ATestCharacter::OverShoulderDisarmEndDelegate, false);
 				AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
 			}
 		}
 	}
 }
 
-void ANagy::Spell1() {
+void ATestCharacter::Spell1() {
 	AnimInstance->Montage_Play(AnimationDataAsset->Spell1, 1);
 }
 
-void ANagy::Spell2() {
+void ATestCharacter::Spell2() {
 	AnimInstance->Montage_Play(AnimationDataAsset->Spell2, 1);
 }
 
 /* Delegates */
 
-void ANagy::DashAbilityTimerDelegate() {
+void ATestCharacter::DashAbilityTimerDelegate() {
 	// Set the current movement type
 	ModifyCharacterMovement(CurrentMovementType);
 	GetMesh()->AnimScriptInstance->GetOwningComponent()->GlobalAnimRateScale = 1.0f;
@@ -269,14 +270,14 @@ void ANagy::DashAbilityTimerDelegate() {
 	const FAbilitiesSettings* AbilitySettings = AbilitiesSettings->FindRow<FAbilitiesSettings>(AbilitiesArray[EAbilities::Dash], "", true);
 	InputDataAsset->MappingContext->UnmapKey(InputDataAsset->DashInputAction, EKeys::SpaceBar);
 	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ANagy::DashCooldownTimerDelegate, 1.0f, false, AbilitySettings->Cooldown);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ATestCharacter::DashCooldownTimerDelegate, 1.0f, false, AbilitySettings->Cooldown);
 }
 
-void ANagy::DashCooldownTimerDelegate() {
+void ATestCharacter::DashCooldownTimerDelegate() {
 	InputDataAsset->MappingContext->MapKey(InputDataAsset->DashInputAction, EKeys::SpaceBar);
 }
 
-void ANagy::InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted) {
+void ATestCharacter::InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted) {
 	TArray<AActor*> AttachedActors;
 	GetAttachedActors(AttachedActors);
 	for (AActor* AttachedActor : AttachedActors) {
@@ -300,7 +301,7 @@ void ANagy::InteractMontageEndDelegate(UAnimMontage* AnimMontage, bool bInterrup
 	}
 }
 
-void ANagy::UnderArmDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted, bool Pickup) {
+void ATestCharacter::UnderArmDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted, bool Pickup) {
 	if (Pickup) {
 		PickUpWeapon();
 	} else {
@@ -309,7 +310,7 @@ void ANagy::UnderArmDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupt
 	}
 }
 
-void ANagy::OverShoulderDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted, bool Pickup) {
+void ATestCharacter::OverShoulderDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInterrupted, bool Pickup) {
 	if (Pickup) {
 		PickUpWeapon();
 	} else {
@@ -320,7 +321,7 @@ void ANagy::OverShoulderDisarmEndDelegate(UAnimMontage* AnimMontage, bool bInter
 
 /* Movement handling */
 
-void ANagy::ModifyCharacterMovement(const EMovementType MovementType) const {
+void ATestCharacter::ModifyCharacterMovement(const EMovementType MovementType) const {
 	const FMovementSetting* MovementSetting = MovementSettings->FindRow<FMovementSetting>(MovementSettingsArray[MovementType], "", true);
 	switch (MovementType) {
 		case Walking:
@@ -341,7 +342,7 @@ void ANagy::ModifyCharacterMovement(const EMovementType MovementType) const {
 	}
 }
 
-void ANagy::AddInputMappings(TArray<UInputAction*> InputActionArray) {
+void ATestCharacter::AddInputMappings(TArray<UInputAction*> InputActionArray) {
 	// For each Input Action listed...
 	for (UInputAction* InputAction : InputActionArray) {
 		TArray<FKey> Keys = Subsystem->QueryKeysMappedToAction(InputAction);
@@ -378,12 +379,12 @@ void ANagy::AddInputMappings(TArray<UInputAction*> InputActionArray) {
 
  /* Weapon handling */
 
-void ANagy::HandleWeaponInteract(const AWeapon* Weapon) {
+void ATestCharacter::HandleWeaponInteract(const AWeapon* Weapon) {
 	if (Weapon->IsPrimary && !PrimaryWeapon.IsValid()) {
 		if (SecondaryWeapon.IsValid()) {
 			AnimInstance->Montage_Play(AnimationDataAsset->UnderArmDisarm, 1);
 			// Create delegate to notify end of montage
-			MontageEndedDelegate.BindUObject(this, &ANagy::UnderArmDisarmEndDelegate, true);
+			MontageEndedDelegate.BindUObject(this, &ATestCharacter::UnderArmDisarmEndDelegate, true);
 			AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->UnderArmDisarm);
 		} else {
 			PickUpWeapon();
@@ -392,7 +393,7 @@ void ANagy::HandleWeaponInteract(const AWeapon* Weapon) {
 		if (PrimaryWeapon.IsValid()) {
 			AnimInstance->Montage_Play(AnimationDataAsset->OverShoulderDisarm, 1);
 			// Create delegate to notify end of montage
-			MontageEndedDelegate.BindUObject(this, &ANagy::OverShoulderDisarmEndDelegate, true);
+			MontageEndedDelegate.BindUObject(this, &ATestCharacter::OverShoulderDisarmEndDelegate, true);
 			AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->OverShoulderDisarm);
 		} else {
 			PickUpWeapon();
@@ -400,7 +401,7 @@ void ANagy::HandleWeaponInteract(const AWeapon* Weapon) {
 	}
 }
 
-void ANagy::PickUpWeapon() {
+void ATestCharacter::PickUpWeapon() {
 	if (CurrentMovementType == Sprinting || CurrentMovementType == Dashing) {
 		TrailNiagaraEffect->Deactivate();
 		ModifyCharacterMovement(Walking);
@@ -440,6 +441,6 @@ void ANagy::PickUpWeapon() {
 	UE_LOG(LogTemp, Warning, TEXT("time played: %f"), AnimInstance->Montage_Play(AnimationDataAsset->InteractMontage, 1))
 
 	// Create delegate to notify end of montage
-	MontageEndedDelegate.BindUObject(this, &ANagy::InteractMontageEndDelegate);
+	MontageEndedDelegate.BindUObject(this, &ATestCharacter::InteractMontageEndDelegate);
 	AnimInstance->Montage_SetEndDelegate(MontageEndedDelegate, AnimationDataAsset->InteractMontage);
 }

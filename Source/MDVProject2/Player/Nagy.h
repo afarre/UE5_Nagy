@@ -28,10 +28,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	// Visible to Blueprints
-	UFUNCTION(BlueprintImplementableEvent)
-	void TriggerNiagaraDashEffect();
-
 	// Weapon pointers
 	UPROPERTY(BlueprintReadOnly)
 	TWeakObjectPtr<AWeapon> EquippedWeapon;
@@ -60,9 +56,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Components)
 	UCameraComponent* FollowCamera;
-
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Components)
-	UChildActorComponent* DashChildBP;
+	UNiagaraComponent* DashNiagaraEffect;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Components)
 	UNiagaraComponent* TrailNiagaraEffect;

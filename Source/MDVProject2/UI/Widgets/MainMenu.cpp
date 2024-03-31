@@ -5,6 +5,12 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "MDVProject2/UI/HUD/MenuHUD.h"
+
+void UMainMenu::NativeOnInitialized() {
+	Super::NativeOnInitialized();
+	MenuHUD = Cast<AMenuHUD>(GetOwningPlayer()->GetHUD());
+}
 
 void UMainMenu::NewGamePressed() const {
 	//TODO: Remove level name hardcode
@@ -16,6 +22,7 @@ void UMainMenu::LoadGamePressed() const {
 }
 
 void UMainMenu::SettingsPressed() const {
+	MenuHUD->DisplaySettingsWidow();
 	UE_LOG(LogTemp, Warning, TEXT("SettingsPressed"))
 }
 

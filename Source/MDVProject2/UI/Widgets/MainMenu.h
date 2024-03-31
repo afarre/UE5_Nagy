@@ -8,6 +8,7 @@
 #include "Components/VerticalBox.h"
 #include "MainMenu.generated.h"
 
+class AMenuHUD;
 /**
  * 
  */
@@ -16,6 +17,8 @@ class MDVPROJECT2_API UMainMenu : public UUserWidget {
 	GENERATED_BODY()
 
 public:
+	virtual void NativeOnInitialized() override;
+	
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
 	UVerticalBox* VerticalBox;
 	
@@ -32,6 +35,9 @@ public:
 	UButton* Exit;
 
 private:
+	UPROPERTY()
+	AMenuHUD* MenuHUD;
+	
 	UFUNCTION(BlueprintCallable)
 	void NewGamePressed() const;
 

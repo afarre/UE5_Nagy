@@ -3,6 +3,8 @@
 
 #include "MenuHUD.h"
 
+#include "MDVProject2/UI/Widgets/SettingsWindow.h"
+
 AMenuHUD::AMenuHUD() {
 	static ConstructorHelpers::FClassFinder<UUserWidget> MenuWidgetClassFinder(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Blueprints/CodeBlueprints/UI/WB_MainMenu.WB_MainMenu_C'"));
 	if (MenuWidgetClassFinder.Class) {
@@ -23,6 +25,16 @@ void AMenuHUD::BeginPlay() {
 		MainMenu = CreateWidget<UMainMenu>(GetWorld(), MenuWidget);
 		if (MainMenu) {
 			MainMenu->AddToViewport();
+		}
+	}
+}
+
+void AMenuHUD::DisplaySettingsWidow() {
+	if (SettingsWidget) {
+		Settings = CreateWidget<USettingsWindow>(GetWorld(), SettingsWidget);
+		if (Settings) {
+			Settings->AddToViewport();
+			MainMenu->RemoveFromParent();
 		}
 	}
 }

@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "InputMappingContext.h"
 #include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MDVProject2/Objects/VFX/PlasmaBall.h"
@@ -42,9 +43,9 @@ void ANagy::InitComponents() {
 	bUseControllerRotationRoll = false;
 
 	// Add dash Niagara effect
-	DashChildBP = CreateDefaultSubobject<UChildActorComponent>("DashBP");
-	DashChildBP->SetChildActorClass(AActor::StaticClass());
-	DashChildBP->SetupAttachment(GetMesh());
+	DashNiagaraEffect = CreateDefaultSubobject<UNiagaraComponent>("DashNiagaraEffect");
+	DashNiagaraEffect->SetupAttachment(GetMesh());
+	DashNiagaraEffect->SetAutoActivate(false);
 
 	// Add sprinting Niagara effect
 	TrailNiagaraEffect = CreateDefaultSubobject<UNiagaraComponent>("TrailNiagaraEffect");
@@ -98,7 +99,7 @@ void ANagy::BeginPlay() {
 	MovementSettingsArray = MovementSettings->GetRowNames();
 	AbilitiesArray = AbilitiesSettings->GetRowNames();
 	AnimInstance = GetMesh()->GetAnimInstance();
-	TrailNiagaraEffect->Deactivate();
+	//TrailNiagaraEffect->Deactivate();
 	CurrentMovementType = Walking;
 }
 
@@ -116,7 +117,7 @@ void ANagy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) {
 		EnhancedInputComponent->BindAction(InputDataAsset->LookInputAction, ETriggerEvent::Triggered, this, &ANagy::Look);
 		EnhancedInputComponent->BindAction(InputDataAsset->AttackInputAction, ETriggerEvent::Triggered, this, &ANagy::Attack);
 		EnhancedInputComponent->BindAction(InputDataAsset->BlockInputAction, ETriggerEvent::Triggered, this, &ANagy::Block);
-		EnhancedInputComponent->BindAction(InputDataAsset->DashInputAction, ETriggerEvent::Triggered, this, &ANagy::Dash);
+		EnhancedInputComponent->BindAction(InputDataAsset->DashInputAction, ETriggerEvent::Started, this, &ANagy::Dash);
 		EnhancedInputComponent->BindAction(InputDataAsset->InteractInputAction, ETriggerEvent::Triggered, this, &ANagy::Interact);
 		EnhancedInputComponent->BindAction(InputDataAsset->CameraZoomInputAction, ETriggerEvent::Triggered, this, &ANagy::CameraZoom);
 		EnhancedInputComponent->BindAction(InputDataAsset->SprintInputAction, ETriggerEvent::Triggered, this, &ANagy::Sprint);
@@ -178,7 +179,8 @@ void ANagy::Block() {
 void ANagy::Dash() {
 	// TODO: Deactivate all inputs other than camera and WASD (to avoid interacting mid dash for example). Prerequisite: learn how to add input modifiers for the WASD input
 	if (GetCharacterMovement()->MaxWalkSpeed >= MovementSettings->FindRow<FMovementSetting>(MovementSettingsArray[Sprinting], "", true)->MaxWalkSpeed) {
-		TriggerNiagaraDashEffect();
+		DashNiagaraEffect->Activate(); // Activates on the player
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), DashNiagaraEffect->GetAsset(), GetActorLocation()); // Activates on the initial player position
 		ModifyCharacterMovement(Dashing);
 		GetMesh()->AnimScriptInstance->GetOwningComponent()->GlobalAnimRateScale = 0.0f;
 
@@ -214,6 +216,7 @@ void ANagy::CameraZoom(const FInputActionValue& Value) {
 }
 
 void ANagy::Sprint() {
+	//TODO: The trail activates when the player is not moving and pressing shift. Add another Idle Movement type and make distinction between walk and idle for this use case
 	if (CurrentMovementType != Sprinting) {
 		//CameraBoom->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "HeadSocket");
 		// TODO: Attaching to HeadSocket when running has issues. Implement a camera shake instead.

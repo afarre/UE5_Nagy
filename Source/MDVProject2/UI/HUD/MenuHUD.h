@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 #include "MDVProject2/UI/Widgets/MainMenu.h"
+#include "MDVProject2/UI/Widgets/SettingsWindow.h"
 #include "MenuHUD.generated.h"
 
 /**
@@ -20,6 +21,8 @@ public:
 	
 	virtual void BeginPlay() override;
 
+	void DisplaySettingsWidow();
+
 private:
 	UPROPERTY()
 	TSubclassOf<UUserWidget> MenuWidget;
@@ -31,5 +34,5 @@ private:
 	TSubclassOf<UUserWidget> SettingsWidget;
 	
 	UPROPERTY()
-	UMainMenu* Settings;
+	USettingsWindow* Settings;
 };

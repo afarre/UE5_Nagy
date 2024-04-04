@@ -23,6 +23,10 @@ public:
 
 	void DisplaySettingsWidow();
 
+	void DisplayMenuWidow();
+	
+	void LoadNewGame();
+
 private:
 	UPROPERTY()
 	TSubclassOf<UUserWidget> MenuWidget;
@@ -35,4 +39,7 @@ private:
 	
 	UPROPERTY()
 	USettingsWindow* Settings;
+
+	UFUNCTION(BlueprintCallable, Category = Game)
+	void LevelLoadCallback();
 };

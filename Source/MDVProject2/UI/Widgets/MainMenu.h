@@ -49,5 +49,4 @@ private:
 
 	UFUNCTION(BlueprintCallable)
 	void ExitPressed() const;
-
 };

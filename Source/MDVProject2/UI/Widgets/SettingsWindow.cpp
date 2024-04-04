@@ -3,10 +3,35 @@
 
 #include "SettingsWindow.h"
 
-void USettingsWindow::ChangeKeyBind() const {
-	UE_LOG(LogTemp, Warning, TEXT("ChangeKeyBind"))
+#include "KeyBindListItem.h"
+#include "MDVProject2/UI/Data/SettingsListEntryData.h"
+#include "MDVProject2/UI/HUD/MenuHUD.h"
+#include "MDVProject2/Utils/DataStructures.h"
+
+
+void USettingsWindow::NativeOnInitialized() {
+	Super::NativeOnInitialized();
+	MenuHUD = Cast<AMenuHUD>(GetOwningPlayer()->GetHUD());
 }
 
-void USettingsWindow::ReturnToDefault() const {
-	UE_LOG(LogTemp, Warning, TEXT("ReturnToDefault"))
+void USettingsWindow::NativeConstruct() {
+	Super::NativeConstruct();
+	KeyBindsDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Script/Engine.DataTable'/Game/DataStructures/DT_KeyBinds.DT_KeyBinds'"));
+
+	KeyBindsDataTable->ForeachRow<FKeyBinds>("IterateKeyBinds", [&](const FName& Name, const FKeyBinds& KeyBind) {
+		// Do something here
+		if (KeyBindListView->GetDefaultEntryClass()) {
+			USettingsListEntryData* SettingsListEntryData = NewObject<USettingsListEntryData>();
+			SettingsListEntryData->VisibleKeyName = FText::FromName(Name);
+			SettingsListEntryData->CurrentKey = KeyBind.CurrentValue;
+			SettingsListEntryData->DefaultKey = KeyBind.DefaultValue;
+			KeyBindListView->AddItem(SettingsListEntryData);
+		}
+	});
+}
+
+void USettingsWindow::BackButtonPressed() {
+	//TODO: Save new inputs from the player in the DataTable and change the input mappings to reflect the changes
+	RemoveFromParent();
+	MenuHUD->DisplayMenuWidow();
 }

@@ -3,7 +3,6 @@
 
 #include "MainMenu.h"
 
-#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "MDVProject2/UI/HUD/MenuHUD.h"
 
@@ -13,8 +12,8 @@ void UMainMenu::NativeOnInitialized() {
 }
 
 void UMainMenu::NewGamePressed() const {
-	//TODO: Remove level name hardcode
-	UGameplayStatics::OpenLevel(UGameplayStatics::GetGameInstance(this), FName(TEXT("Project2_Playable")));
+	UE_LOG(LogTemp, Warning, TEXT("NewGamePressed"))
+	MenuHUD->LoadNewGame();
 }
 
 void UMainMenu::LoadGamePressed() const {
@@ -23,7 +22,6 @@ void UMainMenu::LoadGamePressed() const {
 
 void UMainMenu::SettingsPressed() const {
 	MenuHUD->DisplaySettingsWidow();
-	UE_LOG(LogTemp, Warning, TEXT("SettingsPressed"))
 }
 
 void UMainMenu::ExitPressed() const {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "InputAction.h"
 #include "NiagaraSystem.h"
 #include "Engine/DataTable.h"
 #include "DataStructures.generated.h"
@@ -140,6 +141,20 @@ struct FSpellStatistics : public FTableRowBase {
 		HitRotation = FRotator(1);
 		LifeSpan = 1;
 	}
+};
+
+USTRUCT()
+struct FKeyBinds : public FTableRowBase {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FKey DefaultValue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FKey CurrentValue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UInputAction* InputAction;
 };
 
 /* Enums */

@@ -5,12 +5,11 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Components/Button.h"
-#include "Components/HorizontalBox.h"
-#include "Components/Image.h"
+#include "Components/ListView.h"
 #include "Components/TextBlock.h"
-#include "Components/VerticalBox.h"
 #include "SettingsWindow.generated.h"
 
+class AMenuHUD;
 /**
  * 
  */
@@ -19,36 +18,29 @@ class MDVPROJECT2_API USettingsWindow : public UUserWidget {
 	GENERATED_BODY()
 
 public:
+	virtual void NativeConstruct() override;
 
+	virtual void NativeOnInitialized() override;
+	
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
 	UTextBlock* Title;
 
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
-	UVerticalBox* VerticalBox;
+	UListView* KeyBindListView;
 
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
-	UHorizontalBox* ItemHorizontalBox;
+	UListView* TestListView;
 
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
-	UTextBlock* KeyDescription;
-
-	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
-	UButton* KeyBindChangeButton;
-
-	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
-	UTextBlock* KeyBind;
-
-	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
-	UButton* ReturnToDefaultButton;
-
-	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
-	UImage* ReturnToDefaultIcon;
+	UButton* BackButton;
 
 private:
-	UFUNCTION(BlueprintCallable)
-	void ChangeKeyBind() const;
+	UPROPERTY()
+	AMenuHUD* MenuHUD;
+	
+	UPROPERTY()
+	UDataTable* KeyBindsDataTable;
 
 	UFUNCTION(BlueprintCallable)
-	void ReturnToDefault() const;
-	
+	void BackButtonPressed();
 };

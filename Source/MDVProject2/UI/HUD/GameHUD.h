@@ -5,9 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 #include "MDVProject2/UI/Widgets/CppOnlyWidget.h"
-#include "MDVProject2/UI/Widgets/MainMenu.h"
 #include "GameHUD.generated.h"
 
+class UHealthComponent;
+class ANagy;
+class UNagyUI;
 /**
  * 
  */
@@ -20,8 +22,21 @@ public:
 	
 	virtual void BeginPlay() override;
 	
+	UFUNCTION() // necessary
+	void HealthChanged(const float& CurrentHealth);
+
+	// Health
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UHealthComponent* HealthComponent;
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category="Widget")
-	UCppOnlyWidget* CppOnlyWidget;
+	UCppOnlyWidget* CppOnlyCrosshair;
+
+	UPROPERTY()
+	TSubclassOf<UUserWidget> NagyUIWidget;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Widget")
+	UNagyUI* NagyUI;
 
 };

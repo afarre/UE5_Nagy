@@ -8,6 +8,8 @@
 #include "MDVProject2/Utils/Components/HealthComponent.h"
 #include "Enemy.generated.h"
 
+class UBoxComponent;
+
 UCLASS()
 class MDVPROJECT2_API AEnemy : public ACharacter {
 	GENERATED_BODY()
@@ -36,6 +38,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	UWidgetComponent* HealthBarWidgetComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UBoxComponent* DamageCollisionBox;
 
 	// Other
 	TArray<FName> EnemyNamesArray;

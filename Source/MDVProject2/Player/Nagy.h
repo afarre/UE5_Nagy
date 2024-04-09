@@ -7,12 +7,15 @@
 #include "GameFramework/Character.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "MDVProject2/Objects/Weapons/Weapon.h"
-#include "MDVProject2/Utils/DataAssets/AnimationDataAsset.h"
-#include "MDVProject2/Utils/DataAssets/InputDataAsset.h"
 #include "MDVProject2/Utils/DataStructures.h"
-#include "MDVProject2/Utils/DataAssets/CameraDataAsset.h"
 #include "Nagy.generated.h"
+
+class AWeapon;
+class UCameraDataAsset;
+class UInputDataAsset;
+class UNiagaraComponent;
+class UAnimationDataAsset;
+class UHealthComponent;
 
 UCLASS()
 class MDVPROJECT2_API ANagy : public ACharacter {
@@ -46,6 +49,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void TriggerSpell(UClass* Class);
 
+	// Health
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UHealthComponent* HealthComponent;
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -145,4 +152,5 @@ private:
 	// Abilities
 	UPROPERTY()
 	TArray<FName> AbilitiesArray;
+
 };

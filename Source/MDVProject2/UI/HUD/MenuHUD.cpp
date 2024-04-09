@@ -3,10 +3,9 @@
 
 #include "MenuHUD.h"
 
-#include "Engine/LevelStreamingDynamic.h"
 #include "Kismet/GameplayStatics.h"
 #include "MDVProject2/UI/Widgets/SettingsWindow.h"
-#include "Tests/AutomationCommon.h"
+#include "MDVProject2/Utils/DataStructures.h"
 
 AMenuHUD::AMenuHUD() {
 	static ConstructorHelpers::FClassFinder<UUserWidget> MenuWidgetClassFinder(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Blueprints/CodeBlueprints/UI/WB_MainMenu.WB_MainMenu_C'"));
@@ -27,6 +26,8 @@ void AMenuHUD::BeginPlay() {
 }
 
 void AMenuHUD::DisplaySettingsWidow() {
+	KeyBindsDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Script/Engine.DataTable'/Game/DataStructures/DT_KeyBinds.DT_KeyBinds'"));
+	
 	if (SettingsWidget) {
 		Settings = CreateWidget<USettingsWindow>(GetWorld(), SettingsWidget);
 		if (Settings) {
@@ -75,6 +76,27 @@ void AMenuHUD::LoadNewGame() {
 	UGameplayStatics::OpenLevel(UGameplayStatics::GetGameInstance(this), FName(TEXT("Project2_Playable")));
 	
 	UE_LOG(LogTemp, Warning, TEXT("Done"))
+}
+
+void AMenuHUD::SaveKeyBindConfiguration(const TArray<UObject*> KeyBindConfiguration) {
+
+	TSharedPtr<FKeyBinds> KeyBindsPtr = MakeShared<FKeyBinds>();
+	FKeyBinds KeyBinds;
+	KeyBinds.CurrentValue = EKeys::U;
+	KeyBinds.DefaultValue = EKeys::U;
+	KeyBinds.InputAction = nullptr;
+	*KeyBindsPtr = KeyBinds;
+	
+	KeyBindsDataTable->AddRow(TEXT("Angel"), *KeyBindsPtr);
+
+	//TODO: Find a way to have the changes persist on disk
+	bool result = KeyBindsDataTable->MarkPackageDirty();
+	if (result) {
+		UE_LOG(LogTemp, Warning, TEXT("result true"))	
+	}
+	
+	KeyBindsDataTable->PostEditChange();
+	UE_LOG(LogTemp, Warning, TEXT("SaveKeyBindConfiguration"))
 }
 
 void AMenuHUD::LevelLoadCallback() {

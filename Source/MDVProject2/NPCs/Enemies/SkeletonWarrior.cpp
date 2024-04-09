@@ -15,7 +15,8 @@ ASkeletonWarrior::ASkeletonWarrior() {
 	PrimaryActorTick.bCanEverTick = true;
 	EnemyNamesArray = EnemyStatisticsDataTable->GetRowNames();
 	Settings = EnemyStatisticsDataTable->FindRow<FEnemySettings>(EnemyNamesArray[SkeletonWarrior], "SkeletonWarrior");
-	
+
+	HealthComponent->InitValues(Settings->MaxHealth, Settings->MaxHealth);
 	HealthComponent->MaxHealth = HealthComponent->CurrentHealth = Settings->MaxHealth;
 	
 	GetCharacterMovement()->MaxWalkSpeed = 250;
@@ -35,8 +36,8 @@ void ASkeletonWarrior::Tick(float DeltaTime) {
 }
 
 float ASkeletonWarrior::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) {
-	//Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	HealthComponent->CurrentHealth -= DamageAmount;
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	HealthComponent->RemoveHP(DamageAmount);
 	GetMesh()->GetAnimInstance()->Montage_Play(Settings->TakeDamage, 1);
 	
 	EnemyHealthBar = Cast<UEnemyHealthBar>(HealthBarWidgetComponent->GetUserWidgetObject());
@@ -44,6 +45,9 @@ float ASkeletonWarrior::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 	
 	if (HealthComponent->CurrentHealth <= 0) {
 		EnemyHealthBar->PlayHealthBarAnimation();
+		if (GetController()) {
+			GetController()->UnPossess();
+		}
 		UAnimMontage* AnimMontage = Settings->DeathSequences[FMath::RandRange(0, Settings->DeathSequences.Num() - 1)];
 
 		GetMesh()->GetAnimInstance()->Montage_Play(AnimMontage, 1);

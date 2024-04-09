@@ -37,9 +37,7 @@ public:
 private:
 	UPROPERTY()
 	AMenuHUD* MenuHUD;
-	
-	UPROPERTY()
-	UDataTable* KeyBindsDataTable;
+
 
 	UFUNCTION(BlueprintCallable)
 	void BackButtonPressed();

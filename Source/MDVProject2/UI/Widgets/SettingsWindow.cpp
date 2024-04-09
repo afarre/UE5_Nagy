@@ -16,9 +16,8 @@ void USettingsWindow::NativeOnInitialized() {
 
 void USettingsWindow::NativeConstruct() {
 	Super::NativeConstruct();
-	KeyBindsDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Script/Engine.DataTable'/Game/DataStructures/DT_KeyBinds.DT_KeyBinds'"));
 
-	KeyBindsDataTable->ForeachRow<FKeyBinds>("IterateKeyBinds", [&](const FName& Name, const FKeyBinds& KeyBind) {
+	MenuHUD->KeyBindsDataTable->ForeachRow<FKeyBinds>("IterateKeyBinds", [&](const FName& Name, const FKeyBinds& KeyBind) {
 		// Do something here
 		if (KeyBindListView->GetDefaultEntryClass()) {
 			USettingsListEntryData* SettingsListEntryData = NewObject<USettingsListEntryData>();
@@ -33,5 +32,6 @@ void USettingsWindow::NativeConstruct() {
 void USettingsWindow::BackButtonPressed() {
 	//TODO: Save new inputs from the player in the DataTable and change the input mappings to reflect the changes
 	RemoveFromParent();
+	MenuHUD->SaveKeyBindConfiguration(KeyBindListView->GetListItems());
 	MenuHUD->DisplayMenuWidow();
 }

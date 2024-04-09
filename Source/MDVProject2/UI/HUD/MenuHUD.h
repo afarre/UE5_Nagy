@@ -12,8 +12,7 @@
  * 
  */
 UCLASS()
-class MDVPROJECT2_API AMenuHUD : public AHUD
-{
+class MDVPROJECT2_API AMenuHUD : public AHUD {
 	GENERATED_BODY()
 
 public:
@@ -26,18 +25,23 @@ public:
 	void DisplayMenuWidow();
 	
 	void LoadNewGame();
+	
+	void SaveKeyBindConfiguration(const TArray<UObject*> KeyBindConfiguration);
 
+	UPROPERTY()
+	UDataTable* KeyBindsDataTable;
+	
 private:
 	UPROPERTY()
 	TSubclassOf<UUserWidget> MenuWidget;
 	
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category="Widget")
 	UMainMenu* MainMenu;
 
 	UPROPERTY()
 	TSubclassOf<UUserWidget> SettingsWidget;
 	
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, Category="Widget")
 	USettingsWindow* Settings;
 
 	UFUNCTION(BlueprintCallable, Category = Game)

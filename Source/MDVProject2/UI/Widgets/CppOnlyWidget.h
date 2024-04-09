@@ -8,6 +8,7 @@
 #include "Components/CanvasPanel.h"
 #include "CppOnlyWidget.generated.h"
 
+class UImage;
 class UTextBlock;
 /**
  * 
@@ -25,6 +26,9 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
 	UCanvasPanel* Canvas;
+
+	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
+	UImage* Image;
 	
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidget))
 	UButton* TestButton;

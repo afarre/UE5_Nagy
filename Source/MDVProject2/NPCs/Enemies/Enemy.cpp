@@ -3,6 +3,7 @@
 
 #include "Enemy.h"
 
+#include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "MDVProject2/Controller/MyAIController.h"
@@ -19,6 +20,10 @@ AEnemy::AEnemy() {
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarComponent"));
 	HealthBarWidgetComponent->SetupAttachment(RootComponent);
+
+	// TODO: This should only apply if the enemy has the weapon as part of his mesh (AKA, when "Weapon" is empty)
+	DamageCollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("DamageCollisionBox"));
+	DamageCollisionBox->SetupAttachment(GetMesh(), "EnemyWeaponSocket");
 	
 	static ConstructorHelpers::FClassFinder<UUserWidget> MenuWidgetClassFinder(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/Blueprints/CodeBlueprints/UI/WB_EnemyHealthBar.WB_EnemyHealthBar_C'"));
 	HealthBarWidgetComponent->SetWidgetClass(MenuWidgetClassFinder.Class);

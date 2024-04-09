@@ -2,6 +2,7 @@
 
 #include "MDVProject2/Objects/Weapons/Weapon.h"
 #include "MDVProject2/Player/Nagy.h"
+#include "MDVProject2/Utils/DataAssets/AnimationDataAsset.h"
 
 UEquippedWeaponNotify::UEquippedWeaponNotify() {
 	#if WITH_EDITOR

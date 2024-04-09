@@ -12,6 +12,10 @@
 #include "MDVProject2/Objects/VFX/PlasmaBall.h"
 #include "MDVProject2/Objects/Weapons/Weapon.h"
 #include "MDVProject2/Utils/DataStructures.h"
+#include "MDVProject2/Utils/Components/HealthComponent.h"
+#include "MDVProject2/Utils/DataAssets/AnimationDataAsset.h"
+#include "MDVProject2/Utils/DataAssets/CameraDataAsset.h"
+#include "MDVProject2/Utils/DataAssets/InputDataAsset.h"
 #include "MDVProject2/Utils/Interfaces/InteractiveObject.h"
 
 // Sets default values
@@ -51,6 +55,10 @@ void ANagy::InitComponents() {
 	TrailNiagaraEffect = CreateDefaultSubobject<UNiagaraComponent>("TrailNiagaraEffect");
 	TrailNiagaraEffect->SetupAttachment(GetMesh());
 	TrailNiagaraEffect->SetAutoActivate(false);
+
+	// Add Health component
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	HealthComponent->InitValues(100, 100);
 }
 
 void ANagy::TriggerSpell(UClass* Class) {
@@ -82,7 +90,6 @@ void ANagy::TriggerSpell(UClass* Class) {
 // Called when the game starts or when spawned
 void ANagy::BeginPlay() {
 	Super::BeginPlay();
-	
 	// Get the player controller
 	PlayerController = Cast<APlayerController>(GetController());
 	if (PlayerController && InputDataAsset) {
